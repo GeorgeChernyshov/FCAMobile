@@ -1,4 +1,4 @@
-package com.example.fcamobile
+package com.fca.fcamobile
 
 import org.junit.Test
 

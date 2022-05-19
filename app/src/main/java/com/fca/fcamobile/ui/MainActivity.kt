@@ -1,4 +1,4 @@
-package com.example.fcamobile
+package com.fca.fcamobile.ui
 
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
@@ -9,7 +9,8 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
-import com.example.fcamobile.databinding.ActivityMainBinding
+import com.fca.fcamobile.R
+import com.fca.fcamobile.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
