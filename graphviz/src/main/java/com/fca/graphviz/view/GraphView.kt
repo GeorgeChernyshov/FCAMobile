@@ -1,7 +1,9 @@
 package com.fca.graphviz.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.FrameLayout
 import java.lang.Exception
@@ -21,7 +23,19 @@ class GraphView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        webView.loadUrl(DEFAULT_URL)
+
+        with (webView) {
+            layoutParams = LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+
+            @SuppressLint("SetJavaScriptEnabled")
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+
+            loadUrl(DEFAULT_URL)
+        }
     }
 
     companion object {
