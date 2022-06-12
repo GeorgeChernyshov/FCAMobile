@@ -51,9 +51,12 @@ class GraphView @JvmOverloads constructor(
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
 
-            @SuppressLint("SetJavaScriptEnabled")
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
+            settings.apply {
+                @SuppressLint("SetJavaScriptEnabled")
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                builtInZoomControls = true
+            }
 
             loadUrl(DEFAULT_URL)
         }
@@ -83,13 +86,10 @@ class GraphView @JvmOverloads constructor(
 
     fun setGraph(graph: Graph) {
         CoroutineScope(Dispatchers.IO).launch {
-            val message = serializer.toJson(graph)
-            webMessageChannel.send("showGraph($message);")
+            val message = BridgeMessage(SET_GRAPH, mapOf(GRAPH to graph))
+            val jsonMessage = serializer.toJson(message)
+            webMessageChannel.send("parseWebChannelMessage($jsonMessage);")
         }
-//        val message = BridgeMessage(SET_GRAPH, mapOf(GRAPH to str))
-//        val jsonMessage = serializer.toJson(message)
-//        val webMessage = WebMessageCompat(jsonMessage)
-//        nativePort.postMessage(webMessage)
     }
 
     companion object {

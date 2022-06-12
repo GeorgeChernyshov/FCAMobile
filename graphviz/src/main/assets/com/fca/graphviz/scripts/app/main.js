@@ -152,3 +152,12 @@ function showGraph(graph) {
     //the following shows it in a pop-up window, but the write() and html() functions should be what you need.
     root.appendChild(chart);
 }
+
+function parseWebChannelMessage(message) {
+    var params = message.params
+    switch (message.fn) {
+        case "setGraph":
+            showGraph(params.graph);
+            break;
+    }
+}

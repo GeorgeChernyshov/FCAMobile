@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/GraphFragment"
         android:name="com.fca.fcamobile.ui.fragments.GraphFragment"
-        android:label="@string/first_fragment_label"
+        android:label="@string/graph_fragment_label"
         tools:layout="@layout/fragment_first">
 
     </fragment>
