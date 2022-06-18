@@ -6,7 +6,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import java.lang.reflect.Type
 
-class GraphInfoDeserializer : JsonDeserializer<GraphInfo?> {
+internal class GraphInfoDeserializer : JsonDeserializer<GraphInfo?> {
 
     override fun deserialize(
         json: JsonElement?,

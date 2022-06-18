@@ -9,7 +9,7 @@ import com.google.gson.JsonElement
 import java.lang.Exception
 import java.lang.reflect.Type
 
-class NodeDeserializer : JsonDeserializer<Node?> {
+internal class NodeDeserializer : JsonDeserializer<Node?> {
 
     override fun deserialize(
         json: JsonElement?,

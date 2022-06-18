@@ -6,7 +6,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import java.lang.reflect.Type
 
-class ArcDeserializer : JsonDeserializer<Arc?> {
+internal class ArcDeserializer : JsonDeserializer<Arc?> {
 
     override fun deserialize(
         json: JsonElement?,

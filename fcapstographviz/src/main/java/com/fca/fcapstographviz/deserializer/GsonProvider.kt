@@ -4,7 +4,7 @@ import com.fca.fcapstographviz.entities.*
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 
-object GsonProvider {
+internal object GsonProvider {
     fun newInstance(): Gson {
         return GsonBuilder()
             .registerTypeAdapter(Arc::class.java, ArcDeserializer())

@@ -34,9 +34,6 @@ class GraphView @JvmOverloads constructor(
     private val webMessageChannel = Channel<String>(10)
 
     private val serializer = GsonProvider.newInstance()
-//
-//    private val ports by lazy { WebViewCompat.createWebMessageChannel(webView) }
-//    private val nativePort get() = ports[0]
 
     init {
         addView(webView)

@@ -1,6 +1,6 @@
 package com.fca.fcapstographviz.entities
 
-data class Node(
+internal data class Node(
     val extent: Extent,
     val lStab: Double? = null,
     val uStab: Int? = null,

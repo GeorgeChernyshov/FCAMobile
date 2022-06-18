@@ -10,7 +10,7 @@ import com.google.gson.JsonElement
 import java.lang.Exception
 import java.lang.reflect.Type
 
-class GraphDeserializer : JsonDeserializer<Graph?> {
+internal class GraphDeserializer : JsonDeserializer<Graph?> {
 
     override fun deserialize(
         json: JsonElement?,
