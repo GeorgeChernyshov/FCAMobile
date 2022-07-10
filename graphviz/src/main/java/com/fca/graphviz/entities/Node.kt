@@ -2,5 +2,6 @@ package com.fca.graphviz.entities
 
 data class Node(
     val id: String,
-    val group: Int
+    val group: Int,
+    val level: Int
 )

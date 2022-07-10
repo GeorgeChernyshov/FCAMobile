@@ -22,7 +22,7 @@ object FcapsUtils {
 
     private fun Graph.toGraphVizGraph() : com.fca.graphviz.entities.Graph? {
         val graphVizNodes = nodes.mapIndexed { index, node ->
-            com.fca.graphviz.entities.Node(index.toString(), 1)
+            com.fca.graphviz.entities.Node(index.toString(), 1, node.extent.count)
         }
 
         val graphVizLinks = arcs.map { arc ->

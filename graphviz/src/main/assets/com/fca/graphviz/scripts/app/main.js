@@ -1,3 +1,9 @@
+let VIEW_WIDTH = 600;
+let VIEW_HEIGHT = 600;
+let MIN_GRAPH_SIZE = 500;
+let MIN_LEVEL_DIFF = 20;
+let GRAPH_OFFSET = 100;
+
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
 // https://observablehq.com/@d3/force-directed-graph
@@ -23,8 +29,8 @@ function ForceGraph({
   linkStrokeLinecap = "round", // link stroke linecap
   linkStrength,
   colors = d3.schemeTableau10, // an array of color strings, for the node groups
-  width = 640, // outer width, in pixels
-  height = 400, // outer height, in pixels
+  width = VIEW_WIDTH, // outer width, in pixels
+  height = getHeight(nodes), // outer height, in pixels
   invalidation // when this promise resolves, stop the simulation
 } = {}) {
   // Compute values.
@@ -38,7 +44,8 @@ function ForceGraph({
   const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
 
   // Replace the input nodes and links with mutable objects for the simulation.
-  nodes = d3.map(nodes, (_, i) => ({id: N[i]}));
+  let diff = getLevelDiff(nodes);
+  nodes = d3.map(nodes, (n, i) => ({id: N[i], fy: getFy(n.level)}));
   links = d3.map(links, (_, i) => ({source: LS[i], target: LT[i]}));
 
   // Compute default domains.
@@ -79,10 +86,12 @@ function ForceGraph({
       .attr("stroke", nodeStroke)
       .attr("stroke-opacity", nodeStrokeOpacity)
       .attr("stroke-width", nodeStrokeWidth)
+      .on("click", click)
     .selectAll("circle")
     .data(nodes)
     .join("circle")
       .attr("r", nodeRadius)
+      .on("click", click)
       .call(drag(simulation));
 
   if (W) link.attr("stroke-width", ({index: i}) => W[i]);
@@ -91,8 +100,24 @@ function ForceGraph({
   if (T) node.append("title").text(({index: i}) => T[i]);
   if (invalidation != null) invalidation.then(() => simulation.stop());
 
+  function getLevelDiff(nodes) {
+    let nodeLevels = nodes.map(node => node.level);
+    let maxLevel = Math.max.apply(null, nodeLevels);
+    if (maxLevel < 2) return MIN_LEVEL_DIFF;
+
+    return Math.max(MIN_LEVEL_DIFF, MIN_GRAPH_SIZE / (maxLevel));
+  }
+
+  function getFy(level) {
+    return (level * diff) - ((height - GRAPH_OFFSET) / 2);
+  }
+
   function intern(value) {
     return value !== null && typeof value === "object" ? value.valueOf() : value;
+  }
+
+  function click(d) {
+  	ClickListener.onNodeClicked(d.id)
   }
 
   function ticked() {
@@ -110,6 +135,7 @@ function ForceGraph({
   function drag(simulation) {    
     function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
+      DragListener.onDragStarted();
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
     }
@@ -121,8 +147,7 @@ function ForceGraph({
     
     function dragended(event) {
       if (!event.active) simulation.alphaTarget(0);
-      event.subject.fx = null;
-      event.subject.fy = null;
+      DragListener.onDragEnded();
     }
     
     return d3.drag()
@@ -140,8 +165,8 @@ function showGraph(graph) {
       nodeGroup: d => d.group,
       nodeTitle: d => `${d.id}\n${d.group}`,
       linkStrokeWidth: l => Math.sqrt(l.value),
-      width: 600,
-      height: 600 // a promise to stop the simulation when the cell is re-run
+      width: VIEW_WIDTH,
+      height: getHeight(graph.nodes) // a promise to stop the simulation when the cell is re-run
     })
 
     var svgdiv = document.createElement('div');
@@ -153,6 +178,12 @@ function showGraph(graph) {
     root.appendChild(chart);
 }
 
+function getHeight(nodes) {
+  let nodeLevels = nodes.map(node => node.level);
+  let maxLevel = Math.max.apply(null, nodeLevels);
+  return Math.max(VIEW_HEIGHT, (MIN_LEVEL_DIFF * maxLevel) + GRAPH_OFFSET);
+}
+
 function parseWebChannelMessage(message) {
     var params = message.params
     switch (message.fn) {
@@ -161,3 +192,5 @@ function parseWebChannelMessage(message) {
             break;
     }
 }
+
+parseWebChannelMessage(JSON.parse('{"fn":"setGraph","params":{"graph":{"links":[{"source":"1","target":"2","value":1},{"source":"2","target":"3","value":1},{"source":"3","target":"0","value":1},{"source":"4","target":"5","value":1},{"source":"4","target":"8","value":1},{"source":"4","target":"9","value":1},{"source":"4","target":"11","value":1},{"source":"4","target":"15","value":1},{"source":"5","target":"2","value":1},{"source":"5","target":"6","value":1},{"source":"6","target":"3","value":1},{"source":"6","target":"7","value":1},{"source":"7","target":"0","value":1},{"source":"8","target":"1","value":1},{"source":"8","target":"10","value":1},{"source":"8","target":"12","value":1},{"source":"9","target":"13","value":1},{"source":"9","target":"18","value":1},{"source":"10","target":"14","value":1},{"source":"11","target":"6","value":1},{"source":"11","target":"12","value":1},{"source":"11","target":"13","value":1},{"source":"11","target":"16","value":1},{"source":"12","target":"3","value":1},{"source":"12","target":"14","value":1},{"source":"13","target":"7","value":1},{"source":"13","target":"19","value":1},{"source":"14","target":"0","value":1},{"source":"15","target":"16","value":1},{"source":"15","target":"18","value":1},{"source":"16","target":"17","value":1},{"source":"16","target":"19","value":1},{"source":"17","target":"0","value":1},{"source":"18","target":"10","value":1},{"source":"18","target":"19","value":1},{"source":"19","target":"14","value":1}],"nodes":[{"group":1,"id":"0","level":0},{"group":1,"id":"1","level":3},{"group":1,"id":"2","level":2},{"group":1,"id":"3","level":1},{"group":1,"id":"4","level":8},{"group":1,"id":"5","level":3},{"group":1,"id":"6","level":2},{"group":1,"id":"7","level":1},{"group":1,"id":"8","level":5},{"group":1,"id":"9","level":4},{"group":1,"id":"10","level":2},{"group":1,"id":"11","level":5},{"group":1,"id":"12","level":2},{"group":1,"id":"13","level":3},{"group":1,"id":"14","level":1},{"group":1,"id":"15","level":4},{"group":1,"id":"16","level":3},{"group":1,"id":"17","level":1},{"group":1,"id":"18","level":3},{"group":1,"id":"19","level":2}]}}}'))

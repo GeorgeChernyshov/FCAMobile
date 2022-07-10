@@ -9,9 +9,12 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebViewCompat
+import com.fca.graphviz.api.interfaces.ClickListenerInterface
+import com.fca.graphviz.api.interfaces.DragListenerInterface
 import com.fca.graphviz.api.serializer.GsonProvider
 import com.fca.graphviz.entities.BridgeMessage
 import com.fca.graphviz.entities.Graph
+import com.fca.graphviz.entities.Node
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -35,6 +38,9 @@ class GraphView @JvmOverloads constructor(
 
     private val serializer = GsonProvider.newInstance()
 
+    private val dragListenerInterface = DragListenerInterface()
+    private val clickListenerInterface = ClickListenerInterface()
+
     init {
         addView(webView)
     }
@@ -53,7 +59,11 @@ class GraphView @JvmOverloads constructor(
                 javaScriptEnabled = true
                 domStorageEnabled = true
                 builtInZoomControls = true
+                displayZoomControls = false
             }
+
+            addJavascriptInterface(dragListenerInterface, DragListenerInterface.JS_NAME)
+            addJavascriptInterface(clickListenerInterface, ClickListenerInterface.JS_NAME)
 
             loadUrl(DEFAULT_URL)
         }
@@ -65,6 +75,18 @@ class GraphView @JvmOverloads constructor(
                 startWebMessaging()
             }
         })
+    }
+
+    fun onDragStarted(func: (() -> Unit)) = apply {
+        dragListenerInterface.onDragStart = func
+    }
+
+    fun onDragEnded(func: (() -> Unit)) = apply {
+        dragListenerInterface.onDragEnd = func
+    }
+
+    fun onNodeClicked(func: (String) -> Unit) = apply {
+        clickListenerInterface.onNodeClick = func
     }
 
     private fun startWebMessaging() {
