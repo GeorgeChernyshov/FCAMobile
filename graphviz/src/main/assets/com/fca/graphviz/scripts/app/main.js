@@ -45,7 +45,14 @@ function ForceGraph({
 
   // Replace the input nodes and links with mutable objects for the simulation.
   let diff = getLevelDiff(nodes);
-  nodes = d3.map(nodes, (n, i) => ({id: N[i], fy: getFy(n.level)}));
+  nodes = d3.map(nodes, (n, i) => ({
+      id: N[i],
+      fy: getFy(n.level),
+      extent: n.extent,
+      intent: n.intent
+    })
+  );
+
   links = d3.map(links, (_, i) => ({source: LS[i], target: LT[i]}));
 
   // Compute default domains.
@@ -86,11 +93,12 @@ function ForceGraph({
       .attr("stroke", nodeStroke)
       .attr("stroke-opacity", nodeStrokeOpacity)
       .attr("stroke-width", nodeStrokeWidth)
-      .on("click", click)
     .selectAll("circle")
     .data(nodes)
     .join("circle")
       .attr("r", nodeRadius)
+      .attr("extent", function(d) { return d.extent })
+      .attr("intent", function(d) { return d.intent })
       .on("click", click)
       .call(drag(simulation));
 
@@ -116,8 +124,8 @@ function ForceGraph({
     return value !== null && typeof value === "object" ? value.valueOf() : value;
   }
 
-  function click(d) {
-  	ClickListener.onNodeClicked(d.id)
+  function click(d, i) {
+  	ClickListener.onNodeClicked(JSON.stringify(i))
   }
 
   function ticked() {
@@ -193,4 +201,4 @@ function parseWebChannelMessage(message) {
     }
 }
 
-parseWebChannelMessage(JSON.parse('{"fn":"setGraph","params":{"graph":{"links":[{"source":"1","target":"2","value":1},{"source":"2","target":"3","value":1},{"source":"3","target":"0","value":1},{"source":"4","target":"5","value":1},{"source":"4","target":"8","value":1},{"source":"4","target":"9","value":1},{"source":"4","target":"11","value":1},{"source":"4","target":"15","value":1},{"source":"5","target":"2","value":1},{"source":"5","target":"6","value":1},{"source":"6","target":"3","value":1},{"source":"6","target":"7","value":1},{"source":"7","target":"0","value":1},{"source":"8","target":"1","value":1},{"source":"8","target":"10","value":1},{"source":"8","target":"12","value":1},{"source":"9","target":"13","value":1},{"source":"9","target":"18","value":1},{"source":"10","target":"14","value":1},{"source":"11","target":"6","value":1},{"source":"11","target":"12","value":1},{"source":"11","target":"13","value":1},{"source":"11","target":"16","value":1},{"source":"12","target":"3","value":1},{"source":"12","target":"14","value":1},{"source":"13","target":"7","value":1},{"source":"13","target":"19","value":1},{"source":"14","target":"0","value":1},{"source":"15","target":"16","value":1},{"source":"15","target":"18","value":1},{"source":"16","target":"17","value":1},{"source":"16","target":"19","value":1},{"source":"17","target":"0","value":1},{"source":"18","target":"10","value":1},{"source":"18","target":"19","value":1},{"source":"19","target":"14","value":1}],"nodes":[{"group":1,"id":"0","level":0},{"group":1,"id":"1","level":3},{"group":1,"id":"2","level":2},{"group":1,"id":"3","level":1},{"group":1,"id":"4","level":8},{"group":1,"id":"5","level":3},{"group":1,"id":"6","level":2},{"group":1,"id":"7","level":1},{"group":1,"id":"8","level":5},{"group":1,"id":"9","level":4},{"group":1,"id":"10","level":2},{"group":1,"id":"11","level":5},{"group":1,"id":"12","level":2},{"group":1,"id":"13","level":3},{"group":1,"id":"14","level":1},{"group":1,"id":"15","level":4},{"group":1,"id":"16","level":3},{"group":1,"id":"17","level":1},{"group":1,"id":"18","level":3},{"group":1,"id":"19","level":2}]}}}'))
+//parseWebChannelMessage(JSON.parse('{"fn":"setGraph","params":{"graph":{"links":[{"source":"1","target":"2","value":1},{"source":"2","target":"3","value":1},{"source":"3","target":"0","value":1},{"source":"4","target":"5","value":1},{"source":"4","target":"8","value":1},{"source":"4","target":"9","value":1},{"source":"4","target":"11","value":1},{"source":"4","target":"15","value":1},{"source":"5","target":"2","value":1},{"source":"5","target":"6","value":1},{"source":"6","target":"3","value":1},{"source":"6","target":"7","value":1},{"source":"7","target":"0","value":1},{"source":"8","target":"1","value":1},{"source":"8","target":"10","value":1},{"source":"8","target":"12","value":1},{"source":"9","target":"13","value":1},{"source":"9","target":"18","value":1},{"source":"10","target":"14","value":1},{"source":"11","target":"6","value":1},{"source":"11","target":"12","value":1},{"source":"11","target":"13","value":1},{"source":"11","target":"16","value":1},{"source":"12","target":"3","value":1},{"source":"12","target":"14","value":1},{"source":"13","target":"7","value":1},{"source":"13","target":"19","value":1},{"source":"14","target":"0","value":1},{"source":"15","target":"16","value":1},{"source":"15","target":"18","value":1},{"source":"16","target":"17","value":1},{"source":"16","target":"19","value":1},{"source":"17","target":"0","value":1},{"source":"18","target":"10","value":1},{"source":"18","target":"19","value":1},{"source":"19","target":"14","value":1}],"nodes":[{"group":1,"id":"0","level":0},{"group":1,"id":"1","level":3},{"group":1,"id":"2","level":2},{"group":1,"id":"3","level":1},{"group":1,"id":"4","level":8},{"group":1,"id":"5","level":3},{"group":1,"id":"6","level":2},{"group":1,"id":"7","level":1},{"group":1,"id":"8","level":5},{"group":1,"id":"9","level":4},{"group":1,"id":"10","level":2},{"group":1,"id":"11","level":5},{"group":1,"id":"12","level":2},{"group":1,"id":"13","level":3},{"group":1,"id":"14","level":1},{"group":1,"id":"15","level":4},{"group":1,"id":"16","level":3},{"group":1,"id":"17","level":1},{"group":1,"id":"18","level":3},{"group":1,"id":"19","level":2}]}}}'))

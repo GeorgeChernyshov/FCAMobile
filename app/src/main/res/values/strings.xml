@@ -12,4 +12,7 @@
 
     <string name="graph_fragment_label">Graph Fragment</string>
     <string name="action_import_json">Import JSON</string>
+
+    <string name="info_extent">Extent: %s</string>
+    <string name="info_intent">Intent: %s</string>
 </resources>

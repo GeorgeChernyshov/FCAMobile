@@ -39,7 +39,7 @@ class GraphView @JvmOverloads constructor(
     private val serializer = GsonProvider.newInstance()
 
     private val dragListenerInterface = DragListenerInterface()
-    private val clickListenerInterface = ClickListenerInterface()
+    private val clickListenerInterface = ClickListenerInterface(serializer)
 
     init {
         addView(webView)
@@ -85,7 +85,7 @@ class GraphView @JvmOverloads constructor(
         dragListenerInterface.onDragEnd = func
     }
 
-    fun onNodeClicked(func: (String) -> Unit) = apply {
+    fun onNodeClicked(func: (Node) -> Unit) = apply {
         clickListenerInterface.onNodeClick = func
     }
 

@@ -40,6 +40,7 @@ class GraphFragment : Fragment() {
         binding.graphView.onNodeClicked {
             CoroutineScope(Dispatchers.Main).launch {
                 binding.nodeInfoView.isVisible = true
+                binding.nodeInfoView.setNode(it)
             }
         }.onDragEnded {
             CoroutineScope(Dispatchers.Main).launch {

@@ -20,9 +20,15 @@ object FcapsUtils {
         return fcapsGraph.toGraphVizGraph()
     }
 
-    private fun Graph.toGraphVizGraph() : com.fca.graphviz.entities.Graph? {
+    private fun Graph.toGraphVizGraph() : com.fca.graphviz.entities.Graph {
         val graphVizNodes = nodes.mapIndexed { index, node ->
-            com.fca.graphviz.entities.Node(index.toString(), 1, node.extent.count)
+            com.fca.graphviz.entities.Node(
+                id = index.toString(),
+                group = 1,
+                level = node.extent.count,
+                extent = node.extent.names.joinToString(", "),
+                intent = node.intent?.names?.joinToString(", ")
+            )
         }
 
         val graphVizLinks = arcs.map { arc ->
