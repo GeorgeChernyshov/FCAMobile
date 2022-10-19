@@ -29,7 +29,8 @@ class GraphFragment : Fragment() {
     private val graphViewModel: GraphViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentGraphBinding.inflate(inflater, container, false)

@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/GraphFragment">
+    app:startDestination="@id/GraphContainerFragment">
 
     <fragment
-        android:id="@+id/GraphFragment"
-        android:name="com.fca.fcamobile.ui.fragments.GraphFragment"
+        android:id="@+id/GraphContainerFragment"
+        android:name="com.fca.fcamobile.ui.fragments.GraphContainerFragment"
         android:label="@string/graph_fragment_label"
-        tools:layout="@layout/fragment_first">
+        tools:layout="@layout/fragment_graph">
 
     </fragment>
 </navigation>
