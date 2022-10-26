@@ -13,25 +13,33 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateViewModelFactory
 import com.fca.fcamobile.R
 import com.fca.fcamobile.databinding.ActivityMainBinding
-import com.fca.fcamobile.ui.viewmodels.GraphViewModel
-import com.fca.fcapstographviz.api.FcapsUtils
+import com.fca.fcamobile.ui.viewmodels.FCAViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
-    private val graphViewModel: GraphViewModel by viewModels()
+    private val fcaViewModel: FCAViewModel by viewModels {
+        SavedStateViewModelFactory(application, this)
+    }
 
     private val fcapsParserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val graph = FcapsUtils.getGraph(this, result?.data?.data)
-                graphViewModel.setGraph(graph)
+        if (result.resultCode == Activity.RESULT_OK) {
+            result?.data?.data?.let {
+                val jsonReader = this.contentResolver.openInputStream(it)
+                    ?.bufferedReader()
+                    ?: return@let
+
+                fcaViewModel.importGraphFrom(jsonReader)
             }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

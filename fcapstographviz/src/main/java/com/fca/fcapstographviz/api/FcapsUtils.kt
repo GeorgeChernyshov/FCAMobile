@@ -4,17 +4,13 @@ import android.content.Context
 import android.net.Uri
 import com.fca.fcapstographviz.deserializer.GsonProvider
 import com.fca.fcapstographviz.entities.Graph
+import java.io.BufferedReader
 
 object FcapsUtils {
     private val deserializer = GsonProvider.newInstance()
 
-    fun getGraph(context: Context, uri: Uri?): com.fca.graphviz.entities.Graph? {
-        if (uri == null) return null
-
-        val jsonReader = context.contentResolver.openInputStream(uri)
-            ?.bufferedReader()
-            ?: return null
-
+    //TODO split into two functions
+    fun getGraph(jsonReader: BufferedReader): com.fca.graphviz.entities.Graph {
         val fcapsGraph = deserializer.fromJson(jsonReader, Graph::class.java)
 
         return fcapsGraph.toGraphVizGraph()

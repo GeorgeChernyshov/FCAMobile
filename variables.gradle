@@ -1,0 +1,11 @@
+ext {
+    //plugins
+    android_version = "7.1.0"
+    kotlin_version = "1.6.10"
+
+    //androidx
+    lifecycle_version = "2.5.1"
+
+    //dagger
+    hilt_version = "2.44"
+}

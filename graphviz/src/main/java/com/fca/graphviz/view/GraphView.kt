@@ -7,8 +7,6 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
-import androidx.webkit.WebMessageCompat
-import androidx.webkit.WebViewCompat
 import com.fca.graphviz.api.interfaces.ClickListenerInterface
 import com.fca.graphviz.api.interfaces.DragListenerInterface
 import com.fca.graphviz.api.serializer.GsonProvider
@@ -17,12 +15,8 @@ import com.fca.graphviz.entities.Graph
 import com.fca.graphviz.entities.Node
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import java.lang.Exception
-import kotlin.coroutines.CoroutineContext
 
 @SuppressLint("RequiresFeature")
 class GraphView @JvmOverloads constructor(
@@ -34,7 +28,7 @@ class GraphView @JvmOverloads constructor(
 
     private val webView = WebView(context, attrs, defStyleRes)
 
-    private val webMessageChannel = Channel<String>(10)
+    private val webMessageFlow = MutableStateFlow<String?>(null)
 
     private val serializer = GsonProvider.newInstance()
 
@@ -91,15 +85,13 @@ class GraphView @JvmOverloads constructor(
 
     private fun startWebMessaging() {
         CoroutineScope(Dispatchers.Main).launch {
-            getMessage(this)
+            getMessage()
         }
     }
 
-    private suspend fun getMessage(scope: CoroutineScope) {
-        webView.evaluateJavascript(webMessageChannel.receive()) {
-            scope.launch {
-                getMessage(scope)
-            }
+    private suspend fun getMessage() {
+        webMessageFlow.collect {
+            it?.let { webView.evaluateJavascript(it) {} }
         }
     }
 
@@ -107,7 +99,7 @@ class GraphView @JvmOverloads constructor(
         CoroutineScope(Dispatchers.IO).launch {
             val message = BridgeMessage(SET_GRAPH, mapOf(GRAPH to graph))
             val jsonMessage = serializer.toJson(message)
-            webMessageChannel.send("parseWebChannelMessage($jsonMessage);")
+            webMessageFlow.emit("parseWebChannelMessage($jsonMessage);")
         }
     }
 

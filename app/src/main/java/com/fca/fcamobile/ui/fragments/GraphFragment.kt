@@ -4,29 +4,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.viewModels
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.fca.fcamobile.databinding.FragmentGraphBinding
-import com.fca.fcamobile.ui.viewmodels.GraphViewModel
-import com.fca.graphviz.entities.Graph
-import com.fca.graphviz.entities.Link
-import com.fca.graphviz.entities.Node
+import com.fca.fcamobile.ui.viewmodels.FCAViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 class GraphFragment : Fragment() {
 
     private lateinit var binding: FragmentGraphBinding
 
-    private val graphViewModel: GraphViewModel by activityViewModels()
+    private val graphViewModel: FCAViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,9 +26,9 @@ class GraphFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentGraphBinding.inflate(inflater, container, false)
-        graphViewModel.graph.observe(viewLifecycleOwner, Observer { graph ->
+        graphViewModel.graph.observe(viewLifecycleOwner) { graph ->
             graph?.let { binding.graphView.setGraph(it) }
-        })
+        }
 
         binding.graphView.onNodeClicked {
             CoroutineScope(Dispatchers.Main).launch {

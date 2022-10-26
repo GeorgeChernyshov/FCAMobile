@@ -175,14 +175,11 @@ function showGraph(graph) {
       linkStrokeWidth: l => Math.sqrt(l.value),
       width: VIEW_WIDTH,
       height: getHeight(graph.nodes) // a promise to stop the simulation when the cell is re-run
-    })
+    });
 
-    var svgdiv = document.createElement('div');
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    //Add all your elements to the SVG
-    svgdiv.appendChild(chart);
     var root = document.getElementById("root");
     //the following shows it in a pop-up window, but the write() and html() functions should be what you need.
+    root.innerHTML = '';
     root.appendChild(chart);
 }
 
