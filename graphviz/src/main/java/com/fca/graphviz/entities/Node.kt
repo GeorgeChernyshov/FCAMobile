@@ -1,9 +1,9 @@
 package com.fca.graphviz.entities
 
 data class Node(
-    val id: String,
+    var id: Int,
     val group: Int,
-    val level: Int,
+    var level: Int,
     val extent: String? = null,
     val intent: String? = null
 )

@@ -1,7 +1,7 @@
 package com.fca.graphviz.entities
 
 data class Link(
-    val source: String,
-    val target: String,
+    var source: Int,
+    var target: Int,
     val value: Int
 )
