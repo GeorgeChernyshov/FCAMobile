@@ -1,15 +1,18 @@
 package com.fca.fcamobile.ui.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
+import com.fca.fcamobile.repository.FilterRepository
 import com.fca.fcamobile.repository.GraphRepository
+import com.fca.fcamobile.ui.state.GraphUiState
+import com.fca.graphviz.api.extensions.filter
 import com.fca.graphviz.entities.Graph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import javax.inject.Inject
@@ -17,33 +20,51 @@ import javax.inject.Inject
 @HiltViewModel
 class FCAViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val graphRepository: GraphRepository
+    private val graphRepository: GraphRepository,
+    private val filterRepository: FilterRepository
 ) : ViewModel() {
 
-    private val _graph = MutableLiveData<Graph?>()
-    val graph: LiveData<Graph?> = _graph
+    private val _graph = MutableStateFlow<Graph?>(null)
+    val graph: StateFlow<Graph?> = _graph
+
+    private val _graphUiState = MutableLiveData<GraphUiState>()
+    val graphUiState: LiveData<GraphUiState> = _graphUiState
+
+    val filters = filterRepository.filtersFlow.asLiveData()
 
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main +  viewModelJob)
 
     init {
         uiScope.launch {
-            graphRepository.graphStream.collect {
-                setGraph(it)
-            }
+            graphRepository.graphStream.collect { setGraph(it) }
+        }
+        uiScope.launch {
+            graph.collect { _graphUiState.postValue(GraphUiState(it)) }
         }
     }
 
-    fun setGraph(graph: Graph?) {
-        _graph.postValue(graph)
+    override fun onCleared() {
+        super.onCleared()
+        viewModelJob.cancel()
+    }
+
+    fun setGraph(graph: Graph?) = viewModelScope.launch {
+        _graph.emit(graph)
+        filterRepository.setStabFilter(false)
     }
 
     fun importGraphFrom(jsonReader: BufferedReader) = uiScope.launch {
         graphRepository.importGraphFrom(jsonReader)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        viewModelJob.cancel()
+    fun applyFilter(enabled: Boolean) = viewModelScope.launch {
+        filterRepository.setStabFilter(enabled)
+
+        val filteredGraph = if (enabled) {
+            graph.value?.filter { node -> node.stab > 0.5 }
+        } else graph.value
+
+        _graphUiState.postValue(GraphUiState(filteredGraph))
     }
 }

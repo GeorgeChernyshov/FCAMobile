@@ -4,6 +4,11 @@ ext {
     kotlin_version = "1.6.10"
 
     //androidx
+    core_version = "1.8.0"
+    appcompat_version = "1.5.1"
+    material_version = "1.7.0"
+    constraint_layout_version = "2.1.4"
+    navigation_version = "2.5.2"
     lifecycle_version = "2.5.1"
 
     //dagger

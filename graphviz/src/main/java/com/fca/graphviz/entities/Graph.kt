@@ -7,7 +7,7 @@ data class Graph(
     val links: List<Link>
 ) {
 
-    private lateinit var adjacencyTable: AdjacencyTable
+    private var adjacencyTable: AdjacencyTable
 
     init {
         resetIndices()
@@ -39,6 +39,8 @@ data class Graph(
         val maxExtentLength = nodes.map { it.extent?.length ?: 0 }.maxOrNull()
         val firstNodeIndex = nodes
             .indexOfFirst { (it.extent?.length ?: 0) == maxExtentLength }
+
+        if (firstNodeIndex == -1) return
 
         nodes.forEach { it.level = -1 }
         nodes[firstNodeIndex].level = 0

@@ -23,7 +23,8 @@ object FcapsUtils {
                 group = 1,
                 level = node.extent.count,
                 extent = node.extent.names.joinToString(", "),
-                intent = node.intent?.names?.joinToString(", ")
+                intent = node.intent?.names?.joinToString(", "),
+                stab = node.stab
             )
         }
 

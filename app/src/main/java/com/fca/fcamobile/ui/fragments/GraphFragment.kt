@@ -26,8 +26,8 @@ class GraphFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentGraphBinding.inflate(inflater, container, false)
-        graphViewModel.graph.observe(viewLifecycleOwner) { graph ->
-            graph?.let { binding.graphView.setGraph(it) }
+        graphViewModel.graphUiState.observe(viewLifecycleOwner) { uiState ->
+            uiState.graph?.let { binding.graphView.setGraph(it) }
         }
 
         binding.graphView.onNodeClicked {
