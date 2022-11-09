@@ -23,7 +23,10 @@ class GraphLocalDataSource @Inject constructor(
 
     suspend fun getGraph() : Graph = withContext(coroutineDispatcher) {
         try {
-            serializer.fromJson(file.readText(), Graph::class.java)
+            val graph = serializer.fromJson(file.readText(), Graph::class.java)
+            graph.init()
+
+            graph
         }
         catch (e: Exception) { Graph(emptyList(), emptyList()) }
     }

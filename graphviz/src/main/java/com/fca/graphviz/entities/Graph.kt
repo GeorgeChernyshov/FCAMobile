@@ -15,6 +15,12 @@ data class Graph(
         setLevels()
     }
 
+    fun init() {
+        resetIndices()
+        adjacencyTable = createAdjacencyTable()
+        setLevels()
+    }
+
     private fun resetIndices() {
         val indexesMap = HashMap<Int, Int>()
 
@@ -36,9 +42,9 @@ data class Graph(
     private fun setLevels() {
         val queue = PriorityQueue<Int>()
 
-        val maxExtentLength = nodes.map { it.extent?.length ?: 0 }.maxOrNull()
+        val maxExtentLength = nodes.map { it.extent?.size ?: 0 }.maxOrNull()
         val firstNodeIndex = nodes
-            .indexOfFirst { (it.extent?.length ?: 0) == maxExtentLength }
+            .indexOfFirst { (it.extent?.size ?: 0) == maxExtentLength }
 
         if (firstNodeIndex == -1) return
 
@@ -51,7 +57,7 @@ data class Graph(
             val nodeIndex = queue.poll()
             adjacencyTable.nodes[nodeIndex!!]
                 .adjacentNodes
-                .filter { i -> (nodes[i].extent?.length ?: 0) < (nodes[nodeIndex].extent?.length ?: 0) }
+                .filter { i -> (nodes[i].extent?.size ?: 0) < (nodes[nodeIndex].extent?.size ?: 0) }
                 .forEach { i ->
                     nodes[i].level = maxOf(nodes[i].level, nodes[nodeIndex].level + 1)
                     queue.add(i)

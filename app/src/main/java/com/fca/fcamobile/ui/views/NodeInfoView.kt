@@ -26,7 +26,7 @@ class NodeInfoView @JvmOverloads constructor(
     }
 
     fun setNode(node: Node) {
-        binding.extentTextView.text = context.getString(R.string.info_extent, node.extent)
-        binding.intentTextView.text = context.getString(R.string.info_intent, node.intent)
+        binding.extentTextView.text = context.getString(R.string.info_extent, node.extent?.joinToString(", "))
+        binding.intentTextView.text = context.getString(R.string.info_intent, node.intent?.joinToString(", "))
     }
 }

@@ -39,9 +39,6 @@ class FCAViewModel @Inject constructor(
         uiScope.launch {
             graphRepository.graphStream.collect { setGraph(it) }
         }
-        uiScope.launch {
-            graph.collect { _graphUiState.postValue(GraphUiState(it)) }
-        }
     }
 
     override fun onCleared() {
@@ -50,8 +47,17 @@ class FCAViewModel @Inject constructor(
     }
 
     fun setGraph(graph: Graph?) = viewModelScope.launch {
+        val resetFilters = _graph.value != null
         _graph.emit(graph)
-        filterRepository.setStabFilter(false)
+        if (resetFilters)
+            filterRepository.setStabFilter(false)
+
+        applyFilter(
+            filterRepository.filtersFlow
+                .asLiveData(coroutineContext)
+                .value?.stabFilter
+                ?: false
+        )
     }
 
     fun importGraphFrom(jsonReader: BufferedReader) = uiScope.launch {
@@ -59,12 +65,12 @@ class FCAViewModel @Inject constructor(
     }
 
     fun applyFilter(enabled: Boolean) = viewModelScope.launch {
-        filterRepository.setStabFilter(enabled)
-
         val filteredGraph = if (enabled) {
             graph.value?.filter { node -> node.stab > 0.5 }
         } else graph.value
 
         _graphUiState.postValue(GraphUiState(filteredGraph))
     }
+
+    suspend fun setFilter(enabled: Boolean) = filterRepository.setStabFilter(enabled)
 }
