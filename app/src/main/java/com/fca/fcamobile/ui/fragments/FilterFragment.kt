@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import com.fca.fcamobile.R
 import com.fca.fcamobile.databinding.FragmentFilterBinding
+import com.fca.fcamobile.model.FiltersModel
 import com.fca.fcamobile.ui.viewmodels.FCAViewModel
 import kotlinx.coroutines.launch
 
@@ -24,16 +26,27 @@ class FilterFragment : Fragment() {
     ): View {
         binding = FragmentFilterBinding.inflate(inflater, container, false)
 
-        binding.stabFilterSwitch.setOnCheckedChangeListener { _, checked ->
-            lifecycleScope.launch {
-                if (checked != graphViewModel.filters.value?.stabFilter)
-                    graphViewModel.setFilter(checked)
+        with (binding) {
+            binding.stabFilterView.setTitle(requireContext().getString(R.string.filter_stab_title))
+            binding.impactFilterView.setTitle(requireContext().getString(R.string.filter_impact_title))
+            applyButton.setOnClickListener {
+                val model = FiltersModel(
+                    0.5,
+                    0.5,
+                    binding.stabFilterView.isChecked,
+                    binding.impactFilterView.isChecked
+                )
+                lifecycleScope.launch {
+                    if (model != graphViewModel.filters.value)
+                        graphViewModel.setFilter(model)
+                }
             }
         }
 
         graphViewModel.filters.observe(viewLifecycleOwner) {
-            binding.stabFilterSwitch.isChecked = it.stabFilter
-            graphViewModel.applyFilter(it.stabFilter)
+            binding.stabFilterView.isChecked = it.stabFilterEnabled
+            binding.impactFilterView.isChecked = it.impactFilterEnabled
+            graphViewModel.applyFilter(it)
         }
 
         return binding.root

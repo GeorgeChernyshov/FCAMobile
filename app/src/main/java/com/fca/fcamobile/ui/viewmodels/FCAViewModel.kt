@@ -1,6 +1,7 @@
 package com.fca.fcamobile.ui.viewmodels
 
 import androidx.lifecycle.*
+import com.fca.fcamobile.model.FiltersModel
 import com.fca.fcamobile.repository.FilterRepository
 import com.fca.fcamobile.repository.GraphRepository
 import com.fca.fcamobile.ui.state.GraphUiState
@@ -50,13 +51,12 @@ class FCAViewModel @Inject constructor(
         val resetFilters = _graph.value != null
         _graph.emit(graph)
         if (resetFilters)
-            filterRepository.setStabFilter(false)
+            filterRepository.setFilter(FiltersModel.Default)
 
         applyFilter(
             filterRepository.filtersFlow
                 .asLiveData(coroutineContext)
-                .value?.stabFilter
-                ?: false
+                .value ?: FiltersModel.Default
         )
     }
 
@@ -64,13 +64,18 @@ class FCAViewModel @Inject constructor(
         graphRepository.importGraphFrom(jsonReader)
     }
 
-    fun applyFilter(enabled: Boolean) = viewModelScope.launch {
-        val filteredGraph = if (enabled) {
-            graph.value?.filter { node -> node.stab > 0.5 }
+    fun applyFilter(model: FiltersModel) = viewModelScope.launch {
+        val filteredGraph = if (
+            model.stabFilterEnabled ||
+            model.impactFilterEnabled
+        ) {
+            graph.value?.filter { node -> (!model.stabFilterEnabled || node.stab > 0.5) &&
+                    (!model.impactFilterEnabled || node.impact > 0.5)
+            }
         } else graph.value
 
         _graphUiState.postValue(GraphUiState(filteredGraph))
     }
 
-    suspend fun setFilter(enabled: Boolean) = filterRepository.setStabFilter(enabled)
+    suspend fun setFilter(model: FiltersModel) = filterRepository.setFilter(model)
 }

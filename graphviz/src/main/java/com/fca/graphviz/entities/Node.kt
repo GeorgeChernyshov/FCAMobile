@@ -6,5 +6,6 @@ data class Node(
     var level: Int,
     val extent: List<String>? = null,
     val intent: List<String>? = null,
-    val stab: Double = 0.0
+    val stab: Double = 0.0,
+    val impact: Double = 0.4
 )
