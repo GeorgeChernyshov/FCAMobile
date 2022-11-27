@@ -31,8 +31,8 @@ class FilterFragment : Fragment() {
             binding.impactFilterView.setTitle(requireContext().getString(R.string.filter_impact_title))
             applyButton.setOnClickListener {
                 val model = FiltersModel(
-                    0.5,
-                    0.5,
+                    binding.stabFilterView.inputValue,
+                    binding.impactFilterView.inputValue,
                     binding.stabFilterView.isChecked,
                     binding.impactFilterView.isChecked
                 )
@@ -44,6 +44,8 @@ class FilterFragment : Fragment() {
         }
 
         graphViewModel.filters.observe(viewLifecycleOwner) {
+            binding.stabFilterView.inputValue = it.stabFilterValue
+            binding.impactFilterView.inputValue = it.impactFilterValue
             binding.stabFilterView.isChecked = it.stabFilterEnabled
             binding.impactFilterView.isChecked = it.impactFilterEnabled
             graphViewModel.applyFilter(it)

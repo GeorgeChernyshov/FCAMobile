@@ -69,8 +69,8 @@ class FCAViewModel @Inject constructor(
             model.stabFilterEnabled ||
             model.impactFilterEnabled
         ) {
-            graph.value?.filter { node -> (!model.stabFilterEnabled || node.stab > 0.5) &&
-                    (!model.impactFilterEnabled || node.impact > 0.5)
+            graph.value?.filter { node -> (!model.stabFilterEnabled || node.stab >= model.stabFilterValue.toDouble()) &&
+                    (!model.impactFilterEnabled || node.impact >= model.impactFilterValue.toDouble())
             }
         } else graph.value
 

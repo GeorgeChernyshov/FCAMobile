@@ -1,16 +1,18 @@
 package com.fca.fcamobile.model
 
+import java.math.BigDecimal
+
 data class FiltersModel(
-    val stabFilterValue: Double,
-    val impactFilterValue: Double,
+    val stabFilterValue: BigDecimal,
+    val impactFilterValue: BigDecimal,
     val stabFilterEnabled: Boolean,
     val impactFilterEnabled: Boolean
     ) {
 
     companion object {
         val Default = FiltersModel(
-            stabFilterValue = 0.0,
-            impactFilterValue = 0.0,
+            stabFilterValue = BigDecimal.ZERO,
+            impactFilterValue = BigDecimal.ZERO,
             stabFilterEnabled = false,
             impactFilterEnabled = false
         )
