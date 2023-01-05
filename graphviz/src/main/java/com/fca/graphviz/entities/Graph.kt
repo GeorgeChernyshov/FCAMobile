@@ -1,24 +1,60 @@
 package com.fca.graphviz.entities
 
+import com.fca.graphviz.api.interactor.TopSortInteractor
 import java.util.*
 
 data class Graph(
-    val nodes: List<Node>,
+    val nodes: MutableList<Node>,
     val links: List<Link>
 ) {
 
-    private var adjacencyTable: AdjacencyTable
+    var directedAdjacencyTable: AdjacencyTable
+        private set
 
     init {
+        // join indices to make them 0..graph.size
         resetIndices()
-        adjacencyTable = createAdjacencyTable()
-        setLevels()
+        // create undirected adjacency table
+        val undirectedAdjacencyTable = createUndirectedAdjacencyTable()
+        // set levels
+        setLevels(undirectedAdjacencyTable)
+        // rearrange indices in topsort order
+        val newIndices = TopSortInteractor(this, undirectedAdjacencyTable).invoke()
+        for (i in nodes.indices) {
+            nodes[i].id = newIndices[i]
+            val node = nodes[i].copy()
+            nodes[i] = nodes[newIndices[i]].copy()
+            nodes[newIndices[i]] = node
+        }
+        links.forEach {
+            it.source = newIndices[it.source]
+            it.target = newIndices[it.target]
+        }
+        //create directed adjacency table
+        directedAdjacencyTable = createDirectedAdjacencyTable()
     }
 
     fun init() {
+        // join indices to make them 0..graph.size
         resetIndices()
-        adjacencyTable = createAdjacencyTable()
-        setLevels()
+        // create undirected adjacency table
+        val undirectedAdjacencyTable = createUndirectedAdjacencyTable()
+        // set levels
+        setLevels(undirectedAdjacencyTable)
+        // rearrange indices in topsort order
+        val newIndices = TopSortInteractor(this, undirectedAdjacencyTable).invoke()
+        for (i in nodes.indices) {
+            nodes[i].id = newIndices[i]
+            val node = nodes[i].copy()
+            nodes[i] = nodes[newIndices[i]].copy()
+            nodes[newIndices[i]] = node
+        }
+        links.forEach {
+            it.source = newIndices[it.source]
+            it.target = newIndices[it.target]
+        }
+        //create directed adjacency table
+        directedAdjacencyTable = createDirectedAdjacencyTable()
     }
 
     private fun resetIndices() {
@@ -32,14 +68,25 @@ data class Graph(
         }
     }
 
-    private fun createAdjacencyTable(): AdjacencyTable {
+    private fun createUndirectedAdjacencyTable(): AdjacencyTable {
         val table = AdjacencyTable(nodes.map { node -> node.id })
         links.forEach { table.addUndirectedLink(it.source, it.target) }
 
         return table
     }
 
-    private fun setLevels() {
+    private fun createDirectedAdjacencyTable(): AdjacencyTable {
+        val table = AdjacencyTable(nodes.map { node -> node.id })
+        links.forEach {
+            if (nodes[it.source].level < nodes[it.target].level)
+                table.addDirectedLink(it.source, it.target)
+            else table.addDirectedLink(it.target, it.source)
+        }
+
+        return table
+    }
+
+    private fun setLevels(adjacencyTable: AdjacencyTable) {
         val queue = PriorityQueue<Int>()
 
         val maxExtentLength = nodes.map { it.extent?.size ?: 0 }.maxOrNull()
