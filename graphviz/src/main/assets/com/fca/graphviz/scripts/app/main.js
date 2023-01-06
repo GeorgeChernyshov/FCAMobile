@@ -16,8 +16,8 @@ function ForceGraph({
   nodeGroups, // an array of ordinal values representing the node groups
   nodeTitle, // given d in nodes, a title string
   nodeFill = "currentColor", // node stroke fill (if not using a group color encoding)
-  nodeStroke = "#fff", // node stroke color
-  nodeStrokeWidth = 1.5, // node stroke width, in pixels
+  nodeStroke = "#888", // node stroke color
+  nodeStrokeWidth = 1, // node stroke width, in pixels
   nodeStrokeOpacity = 1, // node stroke opacity
   nodeRadius = 5, // node radius, in pixels
   nodeStrength,
@@ -49,7 +49,9 @@ function ForceGraph({
       id: N[i],
       fy: getFy(n.level),
       extent: n.extent,
-      intent: n.intent
+      intent: n.intent,
+      newObject: n.newObjectAdded,
+      newAttribute: n.newAttributeAdded
     })
   );
 
@@ -102,9 +104,11 @@ function ForceGraph({
       .on("click", click)
       .call(drag(simulation));
 
+
+
   if (W) link.attr("stroke-width", ({index: i}) => W[i]);
   if (L) link.attr("stroke", ({index: i}) => L[i]);
-  if (G) node.attr("fill", ({index: i}) => color(G[i]));
+  if (G) ({index: i}) => setColors(node, G[i])
   if (T) node.append("title").text(({index: i}) => T[i]);
   if (invalidation != null) invalidation.then(() => simulation.stop());
 
@@ -162,6 +166,16 @@ function ForceGraph({
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended);
+  }
+
+  function setColors(node, n) {
+    var topColor = n.newObject ? "white" : "black"
+    var grad = svg.append("defs").append("linearGradient").attr("id", "grad")
+                    .attr("x1", "0%").attr("x2", "0%").attr("y1", "100%").attr("y2", "0%");
+                grad.append("stop").attr("offset", "50%").style("stop-color", "lightblue");
+                grad.append("stop").attr("offset", "50%").style("stop-color", topColor);
+
+                node.attr("fill", "url(#grad)");
   }
 
   return Object.assign(svg.node(), {scales: {color}});
