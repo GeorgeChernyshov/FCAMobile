@@ -8,6 +8,6 @@ data class Node(
     val intent: List<String>? = null,
     val stab: Double = 0.0,
     val impact: Double = 0.4,
-    var newObjectAdded: Boolean = true,
+    var newObjectAdded: Boolean = false,
     var newAttributeAdded: Boolean = false
 )
