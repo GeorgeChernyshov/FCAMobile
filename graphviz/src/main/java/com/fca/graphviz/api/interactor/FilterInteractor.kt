@@ -69,9 +69,6 @@ class FilterInteractor(
     }
 
     private fun isExtentSubset(left: Node, right: Node): Boolean {
-        if (left.id == 2) {
-            val a = 0
-        }
         if (left.level <= right.level) return false
 
         if (left.extent == null || right.extent == null) return true
