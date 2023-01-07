@@ -22,7 +22,7 @@ class TopSortInteractor(
     private fun parseNode(index: Int) {
         for (nodeIndex in adjacencyTable.nodes[index].adjacentNodes) {
             if (graph.nodes[index].level < graph.nodes[nodeIndex].level &&
-                    newIndices[nodeIndex] != NO_INDEX
+                    newIndices[nodeIndex] == NO_INDEX
             ) {
                 parseNode(nodeIndex)
             }

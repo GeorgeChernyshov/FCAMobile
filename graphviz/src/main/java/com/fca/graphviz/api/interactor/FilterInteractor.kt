@@ -14,11 +14,12 @@ class FilterInteractor(
         LinkedList<Int>()
     }
 
+    val filterResult = Array<Boolean?>(graph.nodes.size) { null }
+
     fun invoke(): Graph {
         val filteredNodes = ArrayList<Node>()
         val filteredLinks = ArrayList<Link>()
-        val firstIndex = graph.nodes.first { it.level == 0 }.id
-        filterNode(filteredNodes, filteredLinks, firstIndex)
+        filterNode(filteredNodes, filteredLinks, 0)
         return Graph(filteredNodes, filteredLinks)
     }
 
@@ -26,31 +27,41 @@ class FilterInteractor(
         nodes: MutableList<Node>,
         links: MutableList<Link>,
         index: Int
-    ): Boolean {
-        for (i in graph.adjacencyTable
+    ) {
+        filterResult[index] = predicate.invoke(graph.nodes[index])
+        val adjacentNodes = graph.directedAdjacencyTable
             .nodes[index]
             .adjacentNodes
-            .filter { graph.nodes[it].level > graph.nodes[index].level }
-        ) {
-            if (filterNode(nodes, links, i))
-                links.add(Link(index, i, 1))
+
+        for (i in adjacentNodes) {
+            if (filterResult[i] == null)
+                filterNode(nodes, links, i)
 
             potentialLinks[index].addAll(potentialLinks[i])
         }
 
-        if (predicate.invoke(graph.nodes[index])) {
+        if (filterResult[index] == true) {
             nodes.add(graph.nodes[index].copy())
-        }
 
-        return true
+            for (i in removeSubsetSet(potentialLinks[index]))
+                links.add(Link(index, i, 1))
+
+            potentialLinks[index] = LinkedList<Int>().apply {
+                add(index)
+            }
+        }
     }
 
-    private fun filterSubsetSet(set: LinkedList<Int>): LinkedList<Int> {
-        val result = set
-        for (i in 0 until result.size) {
-            for (j in i + 1 until result.size) {
-                if (isExtentSubset(graph.nodes[j], graph.nodes[i]))
-                    result.remove(j)
+    private fun removeSubsetSet(initList: LinkedList<Int>): LinkedList<Int> {
+        val result = LinkedList<Int>() 
+        result.addAll(initList.sorted().distinct())
+        for (i in result.indices) {
+            var j = i + 1
+            while (j < result.size) {
+                if (isExtentSubset(graph.nodes[result[j]], graph.nodes[result[i]]))
+                    result.removeAt(j--)
+
+                j++
             }
         }
 
@@ -58,19 +69,23 @@ class FilterInteractor(
     }
 
     private fun isExtentSubset(left: Node, right: Node): Boolean {
-        if (left.level >= right.level) return false
+        if (left.id == 2) {
+            val a = 0
+        }
+        if (left.level <= right.level) return false
 
         if (left.extent == null || right.extent == null) return true
 
         val leftExtentIterator = left.extent.sorted().iterator()
         val rightExtentIterator = right.extent.sorted().iterator()
 
-        while (rightExtentIterator.hasNext()) {
-            val attrToSearch = rightExtentIterator.next()
-            var currentAttr = leftExtentIterator.next()
+        while (leftExtentIterator.hasNext()) {
+            val attrToSearch = leftExtentIterator.next()
+            if (!rightExtentIterator.hasNext()) return false
+            var currentAttr = rightExtentIterator.next()
             while (currentAttr != attrToSearch) {
-                if (!leftExtentIterator.hasNext()) return false
-                currentAttr = leftExtentIterator.next()
+                if (!rightExtentIterator.hasNext()) return false
+                currentAttr = rightExtentIterator.next()
             }
         }
 

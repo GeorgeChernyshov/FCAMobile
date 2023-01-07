@@ -20,12 +20,10 @@ data class Graph(
         setLevels(undirectedAdjacencyTable)
         // rearrange indices in topsort order
         val newIndices = TopSortInteractor(this, undirectedAdjacencyTable).invoke()
-        for (i in nodes.indices) {
+        for (i in nodes.indices)
             nodes[i].id = newIndices[i]
-            val node = nodes[i].copy()
-            nodes[i] = nodes[newIndices[i]].copy()
-            nodes[newIndices[i]] = node
-        }
+        nodes.sortBy { node -> node.id }
+
         links.forEach {
             it.source = newIndices[it.source]
             it.target = newIndices[it.target]
@@ -43,12 +41,10 @@ data class Graph(
         setLevels(undirectedAdjacencyTable)
         // rearrange indices in topsort order
         val newIndices = TopSortInteractor(this, undirectedAdjacencyTable).invoke()
-        for (i in nodes.indices) {
+        for (i in nodes.indices)
             nodes[i].id = newIndices[i]
-            val node = nodes[i].copy()
-            nodes[i] = nodes[newIndices[i]].copy()
-            nodes[newIndices[i]] = node
-        }
+        nodes.sortBy { node -> node.id }
+
         links.forEach {
             it.source = newIndices[it.source]
             it.target = newIndices[it.target]

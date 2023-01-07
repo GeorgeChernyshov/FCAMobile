@@ -26,7 +26,7 @@ object FcapsUtils {
                 intent = node.intent?.names,
                 stab = node.stab
             )
-        }
+        }.toMutableList()
 
         val graphVizLinks = arcs.map { arc ->
             com.fca.graphviz.entities.Link(arc.source, arc.destination, 1)
