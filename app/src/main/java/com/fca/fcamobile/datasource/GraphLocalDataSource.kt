@@ -28,7 +28,7 @@ class GraphLocalDataSource @Inject constructor(
 
             graph
         }
-        catch (e: Exception) { Graph(emptyList(), emptyList()) }
+        catch (e: Exception) { Graph(ArrayList(), ArrayList()) }
     }
 
     suspend fun importGraphFrom(jsonReader: BufferedReader) = withContext(coroutineDispatcher) {
