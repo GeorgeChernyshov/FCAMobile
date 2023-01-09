@@ -11,7 +11,9 @@
     <string name="action_import_json">Import JSON</string>
     
     <string name="filter_stab_title">Stability:</string>
+    <string name="filter_delta_title">δ-Value:</string>
     <string name="filter_impact_title">Impact:</string>
+    <string name="filter_p_value_title">p-Value:</string>
     <string name="filter_apply_title">Apply</string>
 
     <string name="info_extent">Extent: %s</string>

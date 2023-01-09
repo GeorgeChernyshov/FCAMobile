@@ -11,20 +11,29 @@ class AssistedInputFilterViewModel(val coroutineScope: CoroutineScope) {
     private val _textFlow = MutableStateFlow<String?>(null)
     val textFlow: StateFlow<String?> = _textFlow
 
+    var filterEnabled = true
+
     fun setText(text: String?) {
         if (text == textFlow.value) return
-        if (text?.firstOrNull() == '.' || text?.lastOrNull() == '.' || text.isNullOrEmpty()) return
 
-        var decimalValue = text.toString().toBigDecimal()
+        if (filterEnabled) {
+            if (text?.firstOrNull() == '.' || text?.lastOrNull() == '.' || text.isNullOrEmpty()) return
 
-        decimalValue = when {
-            decimalValue < BigDecimal.ZERO -> BigDecimal.ZERO
-            decimalValue > BigDecimal.ONE -> BigDecimal.ONE
-            else -> decimalValue.setScale(2, RoundingMode.CEILING)
-        }
+            var decimalValue = text.toString().toBigDecimal()
 
-        coroutineScope.launch {
-            _textFlow.emit(decimalValue.toString())
+            decimalValue = when {
+                decimalValue < BigDecimal.ZERO -> BigDecimal.ZERO
+                decimalValue > BigDecimal.ONE -> BigDecimal.ONE
+                else -> decimalValue.setScale(2, RoundingMode.CEILING)
+            }
+
+            coroutineScope.launch {
+                _textFlow.emit(decimalValue.toString())
+            }
+        } else {
+            coroutineScope.launch {
+                _textFlow.emit(text.toString())
+            }
         }
     }
 }

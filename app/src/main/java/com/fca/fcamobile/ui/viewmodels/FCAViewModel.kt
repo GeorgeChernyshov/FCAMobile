@@ -67,10 +67,15 @@ class FCAViewModel @Inject constructor(
     fun applyFilter(model: FiltersModel) = viewModelScope.launch {
         val filteredGraph = if (
             model.stabFilterEnabled ||
-            model.impactFilterEnabled
+            model.deltaFilterEnabled ||
+            model.impactFilterEnabled ||
+            model.pvalueFilterEnabled
         ) {
-            graph.value?.filter { node -> (!model.stabFilterEnabled || node.stab >= model.stabFilterValue.toDouble()) &&
-                    (!model.impactFilterEnabled || node.impact >= model.impactFilterValue.toDouble())
+            graph.value?.filter { node ->
+                (!model.stabFilterEnabled || node.stab >= model.stabFilterValue.toDouble()) &&
+                        (!model.deltaFilterEnabled || node.delta >= model.deltaFilterValue.toInt()) &&
+                        (!model.impactFilterEnabled || node.impact >= model.impactFilterValue.toDouble()) &&
+                        (!model.pvalueFilterEnabled || node.pvalue >= model.pvalueFilterValue.toDouble())
             }
         } else graph.value
 

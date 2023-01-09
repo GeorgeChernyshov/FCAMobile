@@ -27,27 +27,45 @@ class FilterFragment : Fragment() {
         binding = FragmentFilterBinding.inflate(inflater, container, false)
 
         with (binding) {
-            binding.stabFilterView.setTitle(requireContext().getString(R.string.filter_stab_title))
-            binding.impactFilterView.setTitle(requireContext().getString(R.string.filter_impact_title))
+            stabFilterView.setTitle(requireContext().getString(R.string.filter_stab_title))
+            deltaFilterView.setTitle(requireContext().getString(R.string.filter_delta_title))
+            impactFilterView.setTitle(requireContext().getString(R.string.filter_impact_title))
+            pValueFilterView.setTitle(requireContext().getString(R.string.filter_p_value_title))
+
+            deltaFilterView.filterEnabled = false
+
             applyButton.setOnClickListener {
-                val model = FiltersModel(
-                    binding.stabFilterView.inputValue,
-                    binding.impactFilterView.inputValue,
-                    binding.stabFilterView.isChecked,
-                    binding.impactFilterView.isChecked
-                )
-                lifecycleScope.launch {
-                    if (model != graphViewModel.filters.value)
-                        graphViewModel.setFilter(model)
+                with (binding) {
+                    val model = FiltersModel(
+                        stabFilterView.inputValue,
+                        deltaFilterView.inputValue,
+                        impactFilterView.inputValue,
+                        pValueFilterView.inputValue,
+                        stabFilterView.isChecked,
+                        deltaFilterView.isChecked,
+                        impactFilterView.isChecked,
+                        pValueFilterView.isChecked
+                    )
+                    lifecycleScope.launch {
+                        if (model != graphViewModel.filters.value)
+                            graphViewModel.setFilter(model)
+                    }
                 }
             }
         }
 
         graphViewModel.filters.observe(viewLifecycleOwner) {
-            binding.stabFilterView.inputValue = it.stabFilterValue
-            binding.impactFilterView.inputValue = it.impactFilterValue
-            binding.stabFilterView.isChecked = it.stabFilterEnabled
-            binding.impactFilterView.isChecked = it.impactFilterEnabled
+            with (binding) {
+                stabFilterView.inputValue = it.stabFilterValue
+                deltaFilterView.inputValue = it.deltaFilterValue
+                impactFilterView.inputValue = it.impactFilterValue
+                pValueFilterView.inputValue = it.pvalueFilterValue
+                stabFilterView.isChecked = it.stabFilterEnabled
+                deltaFilterView.isChecked = it.deltaFilterEnabled
+                impactFilterView.isChecked = it.impactFilterEnabled
+                pValueFilterView.isChecked = it.pvalueFilterEnabled
+            }
+
             graphViewModel.applyFilter(it)
         }
 

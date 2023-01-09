@@ -39,6 +39,8 @@ class AssistedInputFilterView  @JvmOverloads constructor(
     private val coroutineScope = CoroutineScope(Dispatchers.Main + job)
     private val viewModel = AssistedInputFilterViewModel(coroutineScope)
 
+    var filterEnabled = viewModel.filterEnabled
+
     fun setTitle(title: String) {
         binding.titleTextView.text = title
     }

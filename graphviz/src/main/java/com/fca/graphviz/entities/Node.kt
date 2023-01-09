@@ -7,5 +7,7 @@ data class Node(
     val extent: List<String>? = null,
     val intent: List<String>? = null,
     val stab: Double = 0.0,
-    val impact: Double = 0.4
+    val delta: Int = 0,
+    val impact: Double = 0.0,
+    val pvalue: Double = 0.0
 )

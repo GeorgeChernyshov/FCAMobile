@@ -24,7 +24,7 @@ internal class NodeDeserializer : JsonDeserializer<Node?> {
         )
 
         val lStab = jsonObject?.get("LStab")?.asDouble
-        val rStab = jsonObject?.get("UStab")?.asInt
+        val rStab = jsonObject?.get("UStab")?.asInt ?: Node.USTAB_DEFAULT
 
         val stab = try {
             jsonObject?.get("Stab")?.asDouble ?: Node.STAB_INF
@@ -44,6 +44,20 @@ internal class NodeDeserializer : JsonDeserializer<Node?> {
 
         if (extent == null) return null
 
-        return Node(extent, lStab, rStab, stab, intent)
+        val pValue = jsonObject?.getAsJsonObject("Quality")
+            ?.get("p-Value")?.asDouble ?: Node.P_VALUE_DEFAULT
+
+        val impact = jsonObject?.getAsJsonObject("Quality")
+            ?.get("Value")?.asDouble ?: Node.IMPACT_DEFAULT
+
+        return Node(
+            extent = extent,
+            intent = intent,
+            lStab = lStab,
+            uStab = rStab,
+            stab = stab,
+            pValue = pValue,
+            impact = impact
+        )
     }
 }
