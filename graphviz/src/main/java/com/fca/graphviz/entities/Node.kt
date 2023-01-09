@@ -9,5 +9,7 @@ data class Node(
     val stab: Double = 0.0,
     val delta: Int = 0,
     val impact: Double = 0.0,
-    val pvalue: Double = 0.0
+    val pvalue: Double = 0.0,
+    var newObjectAdded: Boolean = false,
+    var newAttributeAdded: Boolean = false
 )

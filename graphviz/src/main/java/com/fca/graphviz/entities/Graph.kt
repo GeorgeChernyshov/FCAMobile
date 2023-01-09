@@ -13,12 +13,16 @@ data class Graph(
         resetIndices()
         adjacencyTable = createAdjacencyTable()
         setLevels()
+        findObjectAdditions()
+        findAttributeAdditions()
     }
 
     fun init() {
         resetIndices()
         adjacencyTable = createAdjacencyTable()
         setLevels()
+        findObjectAdditions()
+        findAttributeAdditions()
     }
 
     private fun resetIndices() {
@@ -63,5 +67,72 @@ data class Graph(
                     queue.add(i)
                 }
         }
+    }
+
+    private fun findObjectAdditions() {
+        for (nodeIndex in adjacencyTable.nodes.indices) {
+            val nodeExtent = nodes[nodeIndex].extent ?: emptyList()
+            val totalChildrenExtent = adjacencyTable.nodes[nodeIndex]
+                .adjacentNodes
+                .map { nodes[it] }
+                .filter { it.level > nodes[nodeIndex].level }
+                .mapNotNull { it.extent?.sorted() }
+                .fold(emptyList<String>()) { left, right -> mergeSortedLists(left, right) }
+
+            nodes[nodeIndex].newObjectAdded = !isSubset(nodeExtent, totalChildrenExtent)
+        }
+    }
+
+    private fun findAttributeAdditions() {
+        for (nodeIndex in adjacencyTable.nodes.indices) {
+            val nodeIntent = nodes[nodeIndex].intent ?: emptyList()
+            val totalChildrenIntent = adjacencyTable.nodes[nodeIndex]
+                .adjacentNodes
+                .map { nodes[it] }
+                .filter { it.level < nodes[nodeIndex].level }
+                .mapNotNull { it.intent?.sorted() }
+                .fold(emptyList<String>()) { left, right -> mergeSortedLists(left, right) }
+
+            nodes[nodeIndex].newAttributeAdded = !isSubset(nodeIntent, totalChildrenIntent)
+        }
+    }
+
+    private fun isSubset(left: List<String>, right: List<String>): Boolean {
+        return (left.size < right.size ||
+                left.all {
+                    right.contains(it)
+                })
+    }
+
+    private fun mergeSortedLists(left: List<String>, right: List<String>): List<String> {
+        val result = ArrayList<String>()
+        val leftIterator = left.iterator()
+        val rightIterator = right.iterator()
+
+        while (leftIterator.hasNext() && rightIterator.hasNext()) {
+            val nextLeft = leftIterator.next()
+            val nextRight = rightIterator.next()
+            when {
+                nextLeft > nextRight -> {
+                    result.add(nextRight)
+                    result.add(nextLeft)
+                }
+
+                nextLeft < nextRight -> {
+                    result.add(nextLeft)
+                    result.add(nextRight)
+                }
+
+                else -> result.add(nextLeft)
+            }
+        }
+
+        while (leftIterator.hasNext())
+            result.add(leftIterator.next())
+
+        while (rightIterator.hasNext())
+            result.add(rightIterator.next())
+
+        return result
     }
 }
