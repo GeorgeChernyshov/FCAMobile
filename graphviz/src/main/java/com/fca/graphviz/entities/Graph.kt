@@ -113,12 +113,12 @@ data class Graph(
     }
 
     private fun findObjectAdditions() {
-        for (nodeIndex in adjacencyTable.nodes.indices) {
+        for (nodeIndex in directedAdjacencyTable.nodes.indices) {
             val nodeExtent = nodes[nodeIndex].extent ?: emptyList()
-            val totalChildrenExtent = adjacencyTable.nodes[nodeIndex]
+            val totalChildrenExtent = directedAdjacencyTable
+                .nodes[nodeIndex]
                 .adjacentNodes
                 .map { nodes[it] }
-                .filter { it.level > nodes[nodeIndex].level }
                 .mapNotNull { it.extent?.sorted() }
                 .fold(emptyList<String>()) { left, right -> mergeSortedLists(left, right) }
 
@@ -127,12 +127,13 @@ data class Graph(
     }
 
     private fun findAttributeAdditions() {
-        for (nodeIndex in adjacencyTable.nodes.indices) {
+        val reversedTable = directedAdjacencyTable.reversed()
+        for (nodeIndex in reversedTable.nodes.indices) {
             val nodeIntent = nodes[nodeIndex].intent ?: emptyList()
-            val totalChildrenIntent = adjacencyTable.nodes[nodeIndex]
+            val totalChildrenIntent = reversedTable
+                .nodes[nodeIndex]
                 .adjacentNodes
                 .map { nodes[it] }
-                .filter { it.level < nodes[nodeIndex].level }
                 .mapNotNull { it.intent?.sorted() }
                 .fold(emptyList<String>()) { left, right -> mergeSortedLists(left, right) }
 

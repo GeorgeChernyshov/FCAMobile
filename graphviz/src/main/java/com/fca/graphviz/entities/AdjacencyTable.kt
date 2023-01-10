@@ -24,6 +24,15 @@ class AdjacencyTable(nodesIndexes: List<Int>) {
         nodes[source].adjacentNodes.remove(target)
     }
 
+    fun reversed() : AdjacencyTable {
+        val result = AdjacencyTable(nodes.map { it.index })
+        for (nodeIndex in nodes.indices)
+            for (adjIndex in nodes[nodeIndex].adjacentNodes)
+                result.addDirectedLink(adjIndex, nodeIndex)
+
+        return result
+    }
+
     inner class AdjacencyNode(val index: Int) {
         val adjacentNodes = mutableListOf<Int>()
     }
