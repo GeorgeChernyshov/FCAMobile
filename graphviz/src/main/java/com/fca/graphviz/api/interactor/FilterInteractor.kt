@@ -7,8 +7,17 @@ import java.util.LinkedList
 
 class FilterInteractor(
     private val graph: Graph,
-    private val predicate: (Node) -> Boolean
+    private val stabThreshold: Double?,
+    private val deltaThreshold: Int?,
+    private val impactThreshold: Double?,
+    private val pValueThreshold: Double?
 ) {
+    private val predicate: (Node) -> Boolean = { node ->
+        (stabThreshold?.let { node.stab >= it } ?: true) &&
+                (deltaThreshold?.let { node.delta >= it } ?: true) &&
+                (impactThreshold?.let { node.impact >= it } ?: true) &&
+                (pValueThreshold?.let { node.pvalue >= it } ?: true)
+    }
 
     val potentialLinks = Array(graph.nodes.size) {
         LinkedList<Int>()
@@ -29,6 +38,9 @@ class FilterInteractor(
         index: Int
     ) {
         filterResult[index] = predicate.invoke(graph.nodes[index])
+        if (!isDescentNeeded(nodes[index]))
+            return
+
         val adjacentNodes = graph.directedAdjacencyTable
             .nodes[index]
             .adjacentNodes
@@ -87,5 +99,10 @@ class FilterInteractor(
         }
 
         return true
+    }
+
+    private fun isDescentNeeded(node: Node): Boolean {
+        return (deltaThreshold?.let { (node.extent?.size ?: 0) >= it } ?: true) &&
+                (impactThreshold?.let { node.impact >= it } ?: true)
     }
 }

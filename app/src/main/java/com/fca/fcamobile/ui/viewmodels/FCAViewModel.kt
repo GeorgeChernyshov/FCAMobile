@@ -65,21 +65,23 @@ class FCAViewModel @Inject constructor(
     }
 
     fun applyFilter(model: FiltersModel) = viewModelScope.launch {
-        val filteredGraph = if (
-            model.stabFilterEnabled ||
-            model.deltaFilterEnabled ||
-            model.impactFilterEnabled ||
-            model.pvalueFilterEnabled
-        ) {
-            graph.value?.filter { node ->
-                (!model.stabFilterEnabled || node.stab >= model.stabFilterValue.toDouble()) &&
-                        (!model.deltaFilterEnabled || node.delta >= model.deltaFilterValue.toInt()) &&
-                        (!model.impactFilterEnabled || node.impact >= model.impactFilterValue.toDouble()) &&
-                        (!model.pvalueFilterEnabled || node.pvalue >= model.pvalueFilterValue.toDouble())
-            }
-        } else graph.value
+        with (model) {
+            val filteredGraph = if (
+                stabFilterEnabled ||
+                deltaFilterEnabled ||
+                impactFilterEnabled ||
+                pvalueFilterEnabled
+            ) {
+                graph.value?.filter(
+                    if (stabFilterEnabled) stabFilterValue.toDouble() else null,
+                    if (deltaFilterEnabled) deltaFilterValue.toInt() else null,
+                    if (impactFilterEnabled) impactFilterValue.toDouble() else null,
+                    if (pvalueFilterEnabled) pvalueFilterValue.toDouble() else null
+                )
+            } else graph.value
 
-        _graphUiState.postValue(GraphUiState(filteredGraph))
+            _graphUiState.postValue(GraphUiState(filteredGraph))
+        }
     }
 
     suspend fun setFilter(model: FiltersModel) = filterRepository.setFilter(model)

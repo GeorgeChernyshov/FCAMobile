@@ -9,10 +9,21 @@ import com.fca.graphviz.entities.Link
 import com.fca.graphviz.entities.Node
 import kotlin.system.measureTimeMillis
 
-fun Graph.filter(predicate: (Node) -> Boolean): Graph {
+fun Graph.filter(
+    stabThreshold: Double?,
+    deltaThreshold: Int?,
+    impactThreshold: Double?,
+    pValueThreshold: Double?
+): Graph {
     lateinit var newGraph: Graph
     val time = measureTimeMillis {
-        newGraph = FilterInteractor(this, predicate).invoke()
+        newGraph = FilterInteractor(
+            this,
+            stabThreshold,
+            deltaThreshold,
+            impactThreshold,
+            pValueThreshold
+        ).invoke()
     }
 
     Log.println(Log.INFO, "TimerMessage","Filter time elapsed: $time")
