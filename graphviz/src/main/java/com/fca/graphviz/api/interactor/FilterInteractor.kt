@@ -26,6 +26,7 @@ class FilterInteractor(
     val filterResult = Array<Boolean?>(graph.nodes.size) { null }
 
     fun invoke(): Graph {
+        if (graph.nodes.size == 0) return graph
         val filteredNodes = ArrayList<Node>()
         val filteredLinks = ArrayList<Link>()
         filterNode(filteredNodes, filteredLinks, 0)
@@ -38,7 +39,7 @@ class FilterInteractor(
         index: Int
     ) {
         filterResult[index] = predicate.invoke(graph.nodes[index])
-        if (!isDescentNeeded(nodes[index]))
+        if (!isDescentNeeded(graph.nodes[index]))
             return
 
         val adjacentNodes = graph.directedAdjacencyTable

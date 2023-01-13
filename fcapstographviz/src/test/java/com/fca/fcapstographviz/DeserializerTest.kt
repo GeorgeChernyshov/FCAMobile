@@ -79,7 +79,7 @@ class DeserializerTest {
                 names = emptyList()
             ),
             lStab = null,
-            uStab = null,
+            uStab = 0,
             stab = Node.STAB_INF,
             intent = null
         )

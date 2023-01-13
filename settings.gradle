@@ -16,3 +16,4 @@ rootProject.name = "FCA Mobile"
 include ':app'
 include ':graphviz'
 include ':fcapstographviz'
+include ':filtertimeestimation'

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.library'
+    id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'com.google.dagger.hilt.android'
     id 'kotlin-kapt'
@@ -9,7 +9,7 @@ android {
     compileSdk 32
 
     defaultConfig {
-
+        applicationId "com.fca.filtertimeestimation"
         minSdk 21
         targetSdk 32
         versionCode 2
@@ -50,6 +50,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation project(':graphviz')
     implementation project(':fcapstographviz')
+    implementation project(path: ':app')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

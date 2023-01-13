@@ -13,7 +13,8 @@ class TopSortInteractor(
     var currentIndex = adjacencyTable.nodes.size - 1
 
     fun invoke(): List<Int> {
-        val startIndex = graph.nodes.first { it.level == 0 }.id
+        val startIndex = graph.nodes.firstOrNull { it.level == 0 }?.id
+            ?: return emptyList()
         parseNode(startIndex)
 
         return newIndices
