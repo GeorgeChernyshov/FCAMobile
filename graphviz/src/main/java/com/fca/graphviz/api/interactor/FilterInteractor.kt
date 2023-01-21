@@ -38,8 +38,8 @@ class FilterInteractor(
         index: Int
     ) {
         filterResult[index] = predicate.invoke(graph.nodes[index])
-        if (!isDescentNeeded(nodes[index]))
-            return
+//        if (!isDescentNeeded(nodes[index]))
+//            return
 
         val adjacentNodes = graph.directedAdjacencyTable
             .nodes[index]
