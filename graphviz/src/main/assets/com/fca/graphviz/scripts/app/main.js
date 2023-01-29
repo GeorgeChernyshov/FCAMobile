@@ -3,6 +3,8 @@ let VIEW_HEIGHT = 600;
 let MIN_GRAPH_SIZE = 500;
 let MIN_LEVEL_DIFF = 20;
 let GRAPH_OFFSET = 100;
+let currentNode = undefined;
+let DURATION = 750;
 
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
@@ -59,9 +61,6 @@ function ForceGraph({
 
   // Compute default domains.
   if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
-
-  // Construct the scales.
-  const color = nodeGroup == null ? null : d3.scaleOrdinal(nodeGroups, colors);
 
   // Construct the forces.
   const forceNode = d3.forceManyBody();
@@ -178,17 +177,235 @@ function ForceGraph({
       .on("end", dragended);
   }
 
-  return Object.assign(svg.node(), {scales: {color}});
+  return Object.assign(svg.node());
+}
+
+function NodeTraverseGraph({
+  nodes, // an iterable of node objects (typically [{id}, …])
+  links // an iterable of link objects (typically [{source, target}, …])
+}, {
+  nodeId = d => d.id, // given d in nodes, returns a unique identifier (string)
+  nodeGroup, // given d in nodes, returns an (ordinal) value for color
+  nodeGroups, // an array of ordinal values representing the node groups
+  nodeTitle, // given d in nodes, a title string
+  nodeFill = "currentColor", // node stroke fill (if not using a group color encoding)
+  nodeStroke = "#888", // node stroke color
+  nodeStrokeWidth = 1, // node stroke width, in pixels
+  nodeStrokeOpacity = 1, // node stroke opacity
+  nodeRadius = 5, // node radius, in pixels
+  nodeStrength,
+  linkSource = ({source}) => source, // given d in links, returns a node identifier string
+  linkTarget = ({target}) => target, // given d in links, returns a node identifier string
+  linkStroke = "#999", // link stroke color
+  linkStrokeOpacity = 0.6, // link stroke opacity
+  linkStrokeWidth = 1.5, // given d in links, returns a stroke width in pixels
+  linkStrokeLinecap = "round", // link stroke linecap
+  linkStrength,
+  colors = d3.schemeTableau10, // an array of color strings, for the node groups
+  width = VIEW_WIDTH, // outer width, in pixels
+  height = getHeight(nodes), // outer height, in pixels
+  invalidation // when this promise resolves, stop the simulation
+} = {}) {
+  // Compute values.
+  const N = d3.map(nodes, nodeId).map(intern);
+  const LS = d3.map(links, linkSource).map(intern);
+  const LT = d3.map(links, linkTarget).map(intern);
+  if (nodeTitle === undefined) nodeTitle = (_, i) => N[i];
+  const T = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
+  const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
+  const W = typeof linkStrokeWidth !== "function" ? null : d3.map(links, linkStrokeWidth);
+  const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
+
+  var diagonal = d3.linkVertical()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; });
+
+  function intern(value) {
+    return value !== null && typeof value === "object" ? value.valueOf() : value;
+  }
+
+  function click(d, i) {
+    currentNode = i;
+    visualizeNewLayout();
+  	ClickListener.onNodeClicked(JSON.stringify(i))
+  }
+
+  function addLink( conceptS, conceptD ) {
+  	if( !conceptS.children ) {
+      conceptS.children = [];
+    }
+    conceptS.children.push( conceptD );
+
+    if( !conceptD.parents ) {
+      conceptD.parents = [];
+    }
+    conceptD.parents.push( conceptS );
+  }
+
+  function visualizeNewLayout() {
+   	computeNodePositions();
+   	update();
+  }
+
+  function computeNodePositions() {
+   	currentNode.x = 0;
+   	currentNode.y = 0;
+   	if(currentNode.parents) {
+      placeNodesHorizontally(currentNode.parents, -2.5 * height / 8);
+    }
+    if(currentNode.children) {
+      placeNodesHorizontally(currentNode.children, 2.5 * height / 8);
+    }
+  }
+
+  function update() {
+   	// Compute the new tree layout.
+   	var nodes = [];
+   	var links = [];
+   	if(currentNode.parents) {
+   	  nodes = nodes.concat(currentNode.parents);
+      currentNode.parents.forEach(function(n){
+        links.push({source:n,target:currentNode});
+      });
+   	}
+    if(currentNode.children) {
+      nodes = nodes.concat(currentNode.children);
+      currentNode.children.forEach(function(n){
+    	links.push({source:currentNode,target:n});
+      });
+    }
+    nodes.push(currentNode);
+
+    updateData(nodes,links);
+  }
+
+  // Updates the picture w.r.t. the data
+  function updateData(nodes,links) {
+    var node = svg.selectAll("circle")
+      .data(nodes, function(d) { return d.id; });
+
+    var nodeEnter = node.enter()
+      .append("circle")
+        .attr("fill", nodeFill)
+        .attr("stroke", nodeStroke)
+        .attr("stroke-opacity", nodeStrokeOpacity)
+        .attr("stroke-width", nodeStrokeWidth)
+        .attr("r", nodeRadius)
+        .attr("extent", function(d) { return d.extent })
+        .attr("intent", function(d) { return d.intent })
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+        .on("click", click);
+
+    if (G) nodeEnter.attr("fill", function(d, i) {
+        var topColor = d.newAttribute ? "#37c" : "#7cf";
+        var bottomColor = d.newObject ? "#333" : "#bbb";
+        var attrName = "grad" + i;
+        var grad = svg.append("defs").append("linearGradient").attr("id", attrName)
+          .attr("x1", "0%").attr("x2", "0%").attr("y1", "100%").attr("y2", "0%");
+        grad.append("stop").attr("offset", "50%").style("stop-color", bottomColor);
+        grad.append("stop").attr("offset", "50%").style("stop-color", topColor);
+
+        return "url(#"+ attrName +")";
+    });
+
+    // Transition nodes to their new position.
+    var nodeUpdate = node.transition()
+      .duration(DURATION)
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+    if (G) nodeUpdate.attr("fill", function(d, i) {
+        var topColor = d.newAttribute ? "#37c" : "#7cf";
+        var bottomColor = d.newObject ? "#333" : "#bbb";
+        var attrName = "grad" + i;
+        var grad = svg.append("defs").append("linearGradient").attr("id", attrName)
+          .attr("x1", "0%").attr("x2", "0%").attr("y1", "100%").attr("y2", "0%");
+        grad.append("stop").attr("offset", "50%").style("stop-color", bottomColor);
+        grad.append("stop").attr("offset", "50%").style("stop-color", topColor);
+
+        return "url(#"+ attrName +")";
+    });
+
+    // Transition exiting nodes to the parent's new position.
+    var nodeExit = node.exit()
+      //.attr("transform", function(d) { return "translate(" + prevNode.x + "," + prevNode.y + ")"; })
+      .remove();
+
+    var link = svg.selectAll("path")
+      .data(links, function(d) { return d.source.id + d.target.id * 100000; });
+
+    var linkEnter = link.enter().append("path")
+      .attr("stroke", typeof linkStroke !== "function" ? linkStroke : null)
+      .attr("stroke-opacity", linkStrokeOpacity)
+      .attr("stroke-width", typeof linkStrokeWidth !== "function" ? linkStrokeWidth : null)
+      .attr("stroke-linecap", linkStrokeLinecap)
+      .attr("d", diagonal)
+      .style("fill", "none");
+
+    var linkUpdate = link.transition()
+      .duration(DURATION)
+      .attr("d", diagonal);
+
+    var linkExit = link.exit()
+                   //      .attr("d", function(d) {
+                   //        var o = {x: prevNode.x, y: prevNode.y};
+                   //    	return diagonal({source: o, target: o});
+                   //      })
+      .remove();
+  }
+
+  // Places nodes horizontally
+  function placeNodesHorizontally(nodes, y)
+  {
+  	var step = width/nodes.length;
+  	var lastNodeX = (-step * (nodes.length - 1)) / 2;
+  	nodes.forEach(function(n){
+  		n.x = lastNodeX;
+  		lastNodeX += step;
+  		n.y = y;
+  		if( step < nodeRadius * 2.5 ) {
+  			const verticalPlace=3 * height / 8;
+  			n.y +=  Math.random() * verticalPlace - verticalPlace / 2;
+  		}
+  	});
+  }
+
+  const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
+        .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+  // Replace the input nodes and links with mutable objects for the simulation.
+  nodes = d3.map(nodes, (n, i) => ({
+      id: N[i],
+      extent: n.extent,
+      intent: n.intent,
+      newObject: n.newObjectAdded,
+      newAttribute: n.newAttributeAdded
+    })
+  );
+
+  links = d3.map(links, (_, i) => ({source: LS[i], target: LT[i]}));
+
+  links.forEach(function(arc){
+      addLink(nodes[arc.source], nodes[arc.target]);
+  });
+
+  if (currentNode === undefined) currentNode = nodes[0];
+
+  visualizeNewLayout()
+
+  return Object.assign(svg.node());
 }
 
 function showGraph(graph) {
-    var chart = ForceGraph(graph, {
+    var chart = NodeTraverseGraph(graph, {
       nodeId: d => d.id,
       nodeGroup: d => d.group,
       nodeTitle: d => `${d.id}\n${d.group}`,
       linkStrokeWidth: l => Math.sqrt(l.value),
       width: VIEW_WIDTH,
-      height: getHeight(graph.nodes) // a promise to stop the simulation when the cell is re-run
+      height: VIEW_HEIGHT // a promise to stop the simulation when the cell is re-run
     });
 
     var root = document.getElementById("root");
