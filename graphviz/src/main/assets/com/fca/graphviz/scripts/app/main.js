@@ -5,6 +5,10 @@ let MIN_LEVEL_DIFF = 20;
 let GRAPH_OFFSET = 100;
 let currentNode = undefined;
 let DURATION = 750;
+let FORCE_GRAPH = "FORCE_GRAPH";
+let NODE_TRAVERSAL = "NODE_TRAVERSAL";
+let currentMode = FORCE_GRAPH;
+let currentGraph = undefined;
 
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
@@ -138,6 +142,7 @@ function ForceGraph({
   }
 
   function click(d, i) {
+    currentNode = i;
   	ClickListener.onNodeClicked(JSON.stringify(i))
   }
 
@@ -225,9 +230,16 @@ function NodeTraverseGraph({
   }
 
   function click(d, i) {
+    function toNode(i) {
+      return {
+        id: i.id,
+        extent: i.extent,
+        intent: i.intent
+      }
+    }
+    ClickListener.onNodeClicked(JSON.stringify(toNode(i)));
     currentNode = i;
     visualizeNewLayout();
-  	ClickListener.onNodeClicked(JSON.stringify(i))
   }
 
   function addLink( conceptS, conceptD ) {
@@ -392,26 +404,41 @@ function NodeTraverseGraph({
   });
 
   if (currentNode === undefined) currentNode = nodes[0];
+  else currentNode = nodes.find(node => node.id == currentNode.id);
 
   visualizeNewLayout()
 
   return Object.assign(svg.node());
 }
 
-function showGraph(graph) {
-    var chart = NodeTraverseGraph(graph, {
-      nodeId: d => d.id,
-      nodeGroup: d => d.group,
-      nodeTitle: d => `${d.id}\n${d.group}`,
-      linkStrokeWidth: l => Math.sqrt(l.value),
-      width: VIEW_WIDTH,
-      height: VIEW_HEIGHT // a promise to stop the simulation when the cell is re-run
-    });
-
+function showGraph() {
+    var svg = createSvg();
     var root = document.getElementById("root");
     //the following shows it in a pop-up window, but the write() and html() functions should be what you need.
     root.innerHTML = '';
-    root.appendChild(chart);
+    root.appendChild(svg);
+}
+
+function createSvg() {
+    if (currentMode == FORCE_GRAPH) {
+      return ForceGraph(currentGraph, {
+          nodeId: d => d.id,
+          nodeGroup: d => d.group,
+          nodeTitle: d => `${d.id}\n${d.group}`,
+          linkStrokeWidth: l => Math.sqrt(l.value),
+          width: VIEW_WIDTH,
+          height: getHeight(currentGraph.nodes) // a promise to stop the simulation when the cell is re-run
+        });
+    } else {
+      return NodeTraverseGraph(currentGraph, {
+          nodeId: d => d.id,
+          nodeGroup: d => d.group,
+          nodeTitle: d => `${d.id}\n${d.group}`,
+          linkStrokeWidth: l => Math.sqrt(l.value),
+          width: VIEW_WIDTH,
+          height: VIEW_HEIGHT // a promise to stop the simulation when the cell is re-run
+        });
+    }
 }
 
 function getHeight(nodes) {
@@ -424,9 +451,16 @@ function parseWebChannelMessage(message) {
     var params = message.params
     switch (message.fn) {
         case "setGraph":
-            showGraph(params.graph);
+        currentGraph = params.graph
+            showGraph();
+            break;
+
+        case "setMode":
+            currentMode = params.mode;
+            showGraph();
             break;
     }
 }
 
-//parseWebChannelMessage(JSON.parse('{"fn":"setGraph","params":{"graph":{"links":[{"source":1,"target":2,"value":1},{"source":2,"target":3,"value":1},{"source":3,"target":0,"value":1},{"source":4,"target":5,"value":1},{"source":4,"target":8,"value":1},{"source":4,"target":9,"value":1},{"source":4,"target":11,"value":1},{"source":4,"target":15,"value":1},{"source":5,"target":2,"value":1},{"source":5,"target":6,"value":1},{"source":6,"target":3,"value":1},{"source":6,"target":7,"value":1},{"source":7,"target":0,"value":1},{"source":8,"target":1,"value":1},{"source":8,"target":10,"value":1},{"source":8,"target":12,"value":1},{"source":9,"target":13,"value":1},{"source":9,"target":18,"value":1},{"source":10,"target":14,"value":1},{"source":11,"target":6,"value":1},{"source":11,"target":12,"value":1},{"source":11,"target":13,"value":1},{"source":11,"target":16,"value":1},{"source":12,"target":3,"value":1},{"source":12,"target":14,"value":1},{"source":13,"target":7,"value":1},{"source":13,"target":19,"value":1},{"source":14,"target":0,"value":1},{"source":15,"target":16,"value":1},{"source":15,"target":18,"value":1},{"source":16,"target":17,"value":1},{"source":16,"target":19,"value":1},{"source":17,"target":0,"value":1},{"source":18,"target":10,"value":1},{"source":18,"target":19,"value":1},{"source":19,"target":14,"value":1}],"nodes":[{"extent":[],"group":1,"id":0,"impact":0.4,"level":5,"newAttributeAdded":false,"newObjectAdded":true,"stab":1.0},{"extent":["fish leech","bream","frog"],"group":1,"id":1,"impact":0.4,"intent":["needs water","lives in water","can move"],"level":2,"newAttributeAdded":false,"newObjectAdded":false,"stab":0.5},{"extent":["bream","frog"],"group":1,"id":2,"impact":0.4,"intent":["needs water","lives in water","can move","has limbs"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["frog"],"group":1,"id":3,"impact":0.4,"intent":["needs water","lives in water","can move","has limbs","lives on land"],"level":4,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["fish leech","bream","frog","dog","water weeds","reed","bean","corn"],"group":1,"id":4,"impact":0.4,"intent":["needs water"],"level":0,"newAttributeAdded":true,"newObjectAdded":true,"stab":0.71875},{"extent":["bream","frog","dog"],"group":1,"id":5,"impact":0.4,"intent":["needs water","has limbs"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["frog","dog"],"group":1,"id":6,"impact":0.4,"intent":["needs water","has limbs","lives on land"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["dog"],"group":1,"id":7,"impact":0.4,"intent":["needs water","has limbs","lives on land","monocotyledon","breast feeds"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["fish leech","bream","frog","water weeds","reed"],"group":1,"id":8,"impact":0.4,"intent":["needs water","lives in water"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.625},{"extent":["dog","water weeds","reed","corn"],"group":1,"id":9,"impact":0.4,"intent":["needs water","monocotyledon"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["water weeds","reed"],"group":1,"id":10,"impact":0.4,"intent":["needs water","lives in water","monocotyledon","needs chlorophyll"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["frog","dog","reed","bean","corn"],"group":1,"id":11,"impact":0.4,"intent":["needs water","lives on land"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.53125},{"extent":["frog","reed"],"group":1,"id":12,"impact":0.4,"intent":["needs water","lives in water","lives on land"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["dog","reed","corn"],"group":1,"id":13,"impact":0.4,"intent":["needs water","lives on land","monocotyledon"],"level":2,"newAttributeAdded":true,"newObjectAdded":false,"stab":0.375},{"extent":["reed"],"group":1,"id":14,"impact":0.4,"intent":["needs water","lives in water","lives on land","monocotyledon","needs chlorophyll"],"level":4,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["water weeds","reed","bean","corn"],"group":1,"id":15,"impact":0.4,"intent":["needs water","needs chlorophyll"],"level":1,"newAttributeAdded":false,"newObjectAdded":false,"stab":0.25},{"extent":["reed","bean","corn"],"group":1,"id":16,"impact":0.4,"intent":["needs water","lives on land","needs chlorophyll"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.375},{"extent":["bean"],"group":1,"id":17,"impact":0.4,"intent":["needs water","lives on land","needs chlorophyll","dyocletedon"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["water weeds","reed","corn"],"group":1,"id":18,"impact":0.4,"intent":["needs water","monocotyledon","needs chlorophyll"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["reed","corn"],"group":1,"id":19,"impact":0.4,"intent":["needs water","lives on land","monocotyledon","needs chlorophyll"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5}]}}}'))
+//parseWebChannelMessage(JSON.parse('{"fn":"setGraph","params":{"graph":{"links":[{"source":1,"target":2,"value":1},{"source":2,"target":3,"value":1},{"source":3,"target":0,"value":1},{"source":4,"target":5,"value":1},{"source":4,"target":8,"value":1},{"source":4,"target":9,"value":1},{"source":4,"target":11,"value":1},{"source":4,"target":15,"value":1},{"source":5,"target":2,"value":1},{"source":5,"target":6,"value":1},{"source":6,"target":3,"value":1},{"source":6,"target":7,"value":1},{"source":7,"target":0,"value":1},{"source":8,"target":1,"value":1},{"source":8,"target":10,"value":1},{"source":8,"target":12,"value":1},{"source":9,"target":13,"value":1},{"source":9,"target":18,"value":1},{"source":10,"target":14,"value":1},{"source":11,"target":6,"value":1},{"source":11,"target":12,"value":1},{"source":11,"target":13,"value":1},{"source":11,"target":16,"value":1},{"source":12,"target":3,"value":1},{"source":12,"target":14,"value":1},{"source":13,"target":7,"value":1},{"source":13,"target":19,"value":1},{"source":14,"target":0,"value":1},{"source":15,"target":16,"value":1},{"source":15,"target":18,"value":1},{"source":16,"target":17,"value":1},{"source":16,"target":19,"value":1},{"source":17,"target":0,"value":1},{"source":18,"target":10,"value":1},{"source":18,"target":19,"value":1},{"source":19,"target":14,"value":1}],"nodes":[{"extent":[],"group":1,"id":0,"impact":0.4,"level":5,"newAttributeAdded":false,"newObjectAdded":true,"stab":1.0},{"extent":["fish leech","bream","frog"],"group":1,"id":1,"impact":0.4,"intent":["needs water","lives in water","can move"],"level":2,"newAttributeAdded":false,"newObjectAdded":false,"stab":0.5},{"extent":["bream","frog"],"group":1,"id":2,"impact":0.4,"intent":["needs water","lives in water","can move","has limbs"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["frog"],"group":1,"id":3,"impact":0.4,"intent":["needs water","lives in water","can move","has limbs","lives on land"],"level":4,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["fish leech","bream","frog","dog","water weeds","reed","bean","corn"],"group":1,"id":4,"impact":0.4,"intent":["needs water"],"level":0,"newAttributeAdded":true,"newObjectAdded":true,"stab":0.71875},{"extent":["bream","frog","dog"],"group":1,"id":5,"impact":0.4,"intent":["needs water","has limbs"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["frog","dog"],"group":1,"id":6,"impact":0.4,"intent":["needs water","has limbs","lives on land"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["dog"],"group":1,"id":7,"impact":0.4,"intent":["needs water","has limbs","lives on land","monocotyledon","breast feeds"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["fish leech","bream","frog","water weeds","reed"],"group":1,"id":8,"impact":0.4,"intent":["needs water","lives in water"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.625},{"extent":["dog","water weeds","reed","corn"],"group":1,"id":9,"impact":0.4,"intent":["needs water","monocotyledon"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["water weeds","reed"],"group":1,"id":10,"impact":0.4,"intent":["needs water","lives in water","monocotyledon","needs chlorophyll"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["frog","dog","reed","bean","corn"],"group":1,"id":11,"impact":0.4,"intent":["needs water","lives on land"],"level":1,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.53125},{"extent":["frog","reed"],"group":1,"id":12,"impact":0.4,"intent":["needs water","lives in water","lives on land"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["dog","reed","corn"],"group":1,"id":13,"impact":0.4,"intent":["needs water","lives on land","monocotyledon"],"level":2,"newAttributeAdded":true,"newObjectAdded":false,"stab":0.375},{"extent":["reed"],"group":1,"id":14,"impact":0.4,"intent":["needs water","lives in water","lives on land","monocotyledon","needs chlorophyll"],"level":4,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["water weeds","reed","bean","corn"],"group":1,"id":15,"impact":0.4,"intent":["needs water","needs chlorophyll"],"level":1,"newAttributeAdded":false,"newObjectAdded":false,"stab":0.25},{"extent":["reed","bean","corn"],"group":1,"id":16,"impact":0.4,"intent":["needs water","lives on land","needs chlorophyll"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.375},{"extent":["bean"],"group":1,"id":17,"impact":0.4,"intent":["needs water","lives on land","needs chlorophyll","dyocletedon"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5},{"extent":["water weeds","reed","corn"],"group":1,"id":18,"impact":0.4,"intent":["needs water","monocotyledon","needs chlorophyll"],"level":2,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.25},{"extent":["reed","corn"],"group":1,"id":19,"impact":0.4,"intent":["needs water","lives on land","monocotyledon","needs chlorophyll"],"level":3,"newAttributeAdded":false,"newObjectAdded":true,"stab":0.5}]}}}'));
+//parseWebChannelMessage(JSON.parse('{"fn":"setMode","params":{"mode":"NODE_TRAVERSAL"}}'));

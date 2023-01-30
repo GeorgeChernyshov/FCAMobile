@@ -8,7 +8,9 @@ class ClickListenerInterface(val serializer: Gson) {
     var onNodeClick: ((Node) -> Unit) = {}
 
     @JavascriptInterface
-    fun onNodeClicked(node: String) = onNodeClick.invoke(serializer.fromJson(node, Node::class.java))
+    fun onNodeClicked(node: String) {
+        onNodeClick.invoke(serializer.fromJson(node, Node::class.java))
+    }
 
     companion object {
         const val JS_NAME = "ClickListener"

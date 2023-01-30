@@ -2,8 +2,13 @@ package com.fca.fcamobile.ui.viewmodels
 
 import androidx.lifecycle.*
 import com.fca.fcamobile.model.FiltersModel
+import com.fca.fcamobile.model.GraphSettingsModel
+import com.fca.fcamobile.model.GraphSettingsModel.GraphViewMode
+import com.fca.fcamobile.model.GraphSettingsModel.GraphViewMode.FORCE_GRAPH
+import com.fca.fcamobile.model.GraphSettingsModel.GraphViewMode.NODE_TRAVERSAL
 import com.fca.fcamobile.repository.FilterRepository
 import com.fca.fcamobile.repository.GraphRepository
+import com.fca.fcamobile.repository.GraphSettingsRepository
 import com.fca.fcamobile.ui.state.GraphUiState
 import com.fca.graphviz.api.extensions.filter
 import com.fca.graphviz.entities.Graph
@@ -22,7 +27,8 @@ import javax.inject.Inject
 class FCAViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val graphRepository: GraphRepository,
-    private val filterRepository: FilterRepository
+    private val filterRepository: FilterRepository,
+    private val graphSettingsRepository: GraphSettingsRepository
 ) : ViewModel() {
 
     private val _graph = MutableStateFlow<Graph?>(null)
@@ -30,6 +36,9 @@ class FCAViewModel @Inject constructor(
 
     private val _graphUiState = MutableLiveData<GraphUiState>()
     val graphUiState: LiveData<GraphUiState> = _graphUiState
+
+    private val _graphViewMode = MutableLiveData<GraphViewMode>()
+    val graphViewMode: LiveData<GraphViewMode> = _graphViewMode
 
     val filters = filterRepository.filtersFlow.asLiveData()
 
@@ -39,6 +48,12 @@ class FCAViewModel @Inject constructor(
     init {
         uiScope.launch {
             graphRepository.graphStream.collect { setGraph(it) }
+        }
+
+        uiScope.launch {
+            graphSettingsRepository.settingsFlow.collect {
+                _graphViewMode.postValue(it.viewMode)
+            }
         }
     }
 
@@ -80,9 +95,18 @@ class FCAViewModel @Inject constructor(
                 )
             } else graph.value
 
-            _graphUiState.postValue(GraphUiState(filteredGraph))
+            _graphUiState.postValue(GraphUiState(filteredGraph, null))
         }
     }
 
     suspend fun setFilter(model: FiltersModel) = filterRepository.setFilter(model)
+
+    suspend fun switchMode() {
+        val newMode = when (graphViewMode.value) {
+            NODE_TRAVERSAL -> FORCE_GRAPH
+            else -> NODE_TRAVERSAL
+        }
+
+        graphSettingsRepository.setGraphSettings(GraphSettingsModel(newMode))
+    }
 }

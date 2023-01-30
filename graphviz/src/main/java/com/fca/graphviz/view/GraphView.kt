@@ -103,9 +103,19 @@ class GraphView @JvmOverloads constructor(
         }
     }
 
+    fun setMode(mode: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val message = BridgeMessage(SET_MODE, mapOf(MODE to mode))
+            val jsonMessage = serializer.toJson(message)
+            webMessageFlow.emit("parseWebChannelMessage($jsonMessage);")
+        }
+    }
+
     companion object {
         private const val DEFAULT_URL = "file:///android_asset/com/fca/graphviz/index.html"
         const val SET_GRAPH = "setGraph"
+        const val SET_MODE = "setMode"
         const val GRAPH = "graph"
+        const val MODE = "mode"
     }
 }
